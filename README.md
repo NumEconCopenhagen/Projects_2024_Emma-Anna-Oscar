@@ -1,9 +1,8 @@
-# \[Group name\]
+# \[Anna & Emma\]
 
 **Group members:**
-- A
-- B
-- C
+- Emma Knippel
+- Anna Abildskov
 
 This repository contains  
 1. Inaugural project. 
