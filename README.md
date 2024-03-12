@@ -1,9 +1,10 @@
 # Group number #?
-\[Anna & Emma\]
+\[Anna, Oscar & Emma\]
 
 **Group members:**
 - Emma Knippel
 - Anna Abildskov
+- Oscar Nyholm
 
 This repository contains  
 1. Inaugural project. 
