@@ -1,4 +1,4 @@
-# Group number #?
+
 \[Anna, Oscar & Emma\]
 
 **Group members:**
