@@ -59,7 +59,7 @@ class ExchangeEconomyClass:
 
     def market_clearing_error(self):
         '''Loop over values of p1 to calculate the corresponding market clearing errors'''
-        N = 150
+        N = 75
         p1_vec = np.linspace(0.5,2.5,N)
         eps_values = []
 
@@ -69,7 +69,7 @@ class ExchangeEconomyClass:
 
     def market_clearing_price(self):
         '''Find the price that clears the markets'''
-        N = 150
+        N = 75
         p1_vec = np.linspace(0.5,2.5,N)
         
         market_clearing_price = []
@@ -78,7 +78,7 @@ class ExchangeEconomyClass:
         for p1 in p1_vec:
             eps_values = self.market_clearing_error()
             eps1 = [pair[0] for pair in eps_values]
-            if abs(eps1[i]) < 0.001:
+            if abs(eps1[i]) < 0.009:
                 market_clearing_price.append(p1)
             i = i+1
         return market_clearing_price
