@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 class ExchangeEconomyClass:
 
     def __init__(self):
-
+        '''Initialize the class and define the parameter values'''
         par = self.par = SimpleNamespace()
 
         # a. preferences
@@ -22,26 +22,31 @@ class ExchangeEconomyClass:
         par.w2A = 0.3
 
     def utility_A(self,x1A,x2A):
+        '''Calculate the utility for a given level of x1 and x2 for agent B'''
         par = self.par
         return x1A**par.alpha * x2A**(1-par.alpha)
 
     def utility_B(self,x1B,x2B):
+        '''Calculate the utility for a given level of x1 and x2 for agent B'''
         par = self.par
         return x1B**par.beta * x2B**(1-par.beta)
 
     def demand_A(self,p1):
+        '''Calculate the demand of x1 and x2 for agent A'''
         par = self.par
         x1A = par.alpha*(p1*par.w1A+par.w2A)/p1
         x2A = (1-par.alpha)*(p1*par.w1A+par.w2A)
         return x1A, x2A
     
     def demand_B(self,p1):
+        '''Calculate the demand of x1 and x2 for agent B'''
         par = self.par
         x1B = par.beta*((p1*(1-par.w1A))+(1-par.w2A))/p1
         x2B = (1-par.beta)*(p1*(1-par.w1A)+(1-par.w2A))
         return x1B, x2B
        
     def check_market_clearing(self,p1):
+        '''Calculate the market clearing errors for a given p1'''
         par = self.par
 
         x1A,x2A = self.demand_A(p1)
@@ -53,6 +58,7 @@ class ExchangeEconomyClass:
         return eps1,eps2
 
     def market_clearing_error(self):
+        '''Loop over values of p1 to calculate the corresponding market clearing errors'''
         N = 75
         p1_vec = np.linspace(0.5,2.5,N)
         eps_values = []
@@ -60,13 +66,21 @@ class ExchangeEconomyClass:
         for p1 in p1_vec:
             eps_values.append(self.check_market_clearing(p1))
         return eps_values
-
     
-    
+    def market_clearing_price(self):
+        '''Find the price that clears the markets'''
+        N = 75
+        p1_vec = np.linspace(0.5,2.5,N)
+        
+        market_clearing_price = []
 
-
+        for p1 in p1_vec:
+            if np.isclose([self.check_market_clearing(p1)],[0])==True:
+                market_clearing_price.append(p1)
+        return market_clearing_price
 
     def pareto_improvement(self):
+        '''Loop over values of x1 and x2 to see when they yield a pareto improvement from the starting point'''
         par = self.par
         N = 75
 
