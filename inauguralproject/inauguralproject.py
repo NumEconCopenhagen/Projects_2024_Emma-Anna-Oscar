@@ -62,20 +62,19 @@ class ExchangeEconomyClass:
             eps1_values, eps2_values = self.check_market_clearing(p1)
         return eps1_values, eps2_values
 
+
     def pareto_improvement(self):
         par = self.par
+        N = 75
 
-        cons_x1A = []
-        cons_x2A = []
+        pareto_pairs = []
 
         x1A_vec = np.linspace(0,1,N)
         x2A_vec = np.linspace(0,1,N)
 
         for x1A in (x1A_vec):
             for x2A in (x2A_vec):
-                if (self.utility_A(x1A, x2A) >= self.utility_A(par.w1A, par.w2A)) and (self.utility_B(1-x1A, 1-x1A)) >= self.utility_B(1-par.w1A, 1-par.w2A):
-                    cons_x1A.append(x1A)
-                    cons_x2A.append(x2A)
-        
-        return 
-
+                if (self.utility_A(x1A, x2A) >= self.utility_A(par.w1A, par.w2A)) and \
+                    (self.utility_B(1-x1A, 1-x1A)) >= self.utility_B(1-par.w1A, 1-par.w2A):
+                    pareto_pairs.append((x1A, x2A))
+        return pareto_pairs
