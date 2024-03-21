@@ -55,12 +55,15 @@ class ExchangeEconomyClass:
     def market_clearing_error(self):
         N = 75
         p1_vec = np.linspace(0.5,2.5,N)
-        eps1_values = np.empty(N)
-        eps2_values = np.empty(N)
+        eps_values = []
 
         for p1 in p1_vec:
-            eps1_values, eps2_values = self.check_market_clearing(p1)
-        return eps1_values, eps2_values
+            eps_values.append(self.check_market_clearing(p1))
+        return eps_values
+
+    
+    
+
 
 
     def pareto_improvement(self):
