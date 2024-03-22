@@ -105,5 +105,4 @@ class ExchangeEconomyClass:
     def value_of_choice(p1):
         par = self.par
 
-        return -par.utility_A(1-par.x1B,1-par.x2B)
     
