@@ -128,6 +128,20 @@ class ExchangeEconomyClass:
         optimal_allocation = result.x
         return optimal_allocation
 
+    def constraint_C(self,x):
+        x1A, x2A = x
+        return [
+            self.utility_A(x1A, x2A) - self.utility_A(self.par.w1A, self.par.w2A),
+            self.utility_B(1 - x1A, 1 - x2A) - self.utility_B(1 - self.par.w1A, 1 - self.par.w2A),
+            x1A - 1,
+            x2A - 1]
+
+    def market_equilibrium_allocation8(self):
+        x0 = [0.5, 0.5]
+        constraints = {'type': 'ineq', 'fun': self.constraint_C}
+        result = optimize.minimize(lambda x: -self.utility_A(x[0], x[1]), x0, constraints=constraints)
+        x1, x2 = result.x
+        return x1, x2
         
     def market_equilibrium_allocation(self):
     
