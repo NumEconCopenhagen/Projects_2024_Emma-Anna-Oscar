@@ -103,7 +103,6 @@ class ExchangeEconomyClass:
     def price_setter(self,p1):
         '''objective function to use for maximizing (minimizing) in question 4'''
         par = self.par
-        return -par.utility_A(1-par.x1B, 1-par.x2B)
         x1B,x2B = self.demand_B(p1)
         return -self.utility_A(1-x1B, 1-x2B)
 
