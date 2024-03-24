@@ -104,5 +104,31 @@ class ExchangeEconomyClass:
         '''objective function to use for maximizing (minimizing)'''
         par = self.par
         return -par.utility_A(1-par.x1B, 1-par.x2B)
-        
     
+    def utilitarian_planner(self):
+        def agri_utility(x):
+            x1A, x2A = x
+            return self.utility_A(x1A, x2A) + self.utility_B(1-x1A, 1 - x2A)
+        constraints = ({'type': 'ineq', 'fun': lambda x: x[0]},
+                       {'type': 'ineq', 'fun': lambda x: x[1]},
+                       {'type': 'ineq', 'fun': lambda x: 1 - x[0]},
+                       {'type': 'ineq', 'fun': lambda x: 1 - x[1]})
+        x0 = [0.5, 0.5]
+        result = optimize.minimize(lambda x: -agri_utility(x), x0, constraints=constraints)
+        optimal_allocation = result.x
+        return optimal_allocation
+
+        
+    def market_equilibrium_allocation(self):
+    
+        def objective_function(p1):
+            x1A, x2A = self.demand_A(p1)
+            return -self.utility_A(x1A, x2A)
+        result = optimize.minimize_scalar(objective_function)
+        optimal_p1 = result.x
+        x1A, x2A = self.demand_A(optimal_p1)
+        wA1 = x1A
+        wA2 = x2A
+        return wA1, wA2
+    
+
