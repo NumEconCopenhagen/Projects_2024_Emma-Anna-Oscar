@@ -101,11 +101,14 @@ class ExchangeEconomyClass:
         return pareto_pairs
     
     def price_setter(self,p1):
-        '''objective function to use for maximizing (minimizing)'''
+        '''objective function to use for maximizing (minimizing) in question 4'''
         par = self.par
         x1B,x2B = self.demand_B(p1)
         return -self.utility_A(1-x1B, 1-x2B)
 
 
-        
+    def market_maker(self,p1):
+        '''objective function to use for question 5'''
+        par = self.par
+
     
