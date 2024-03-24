@@ -110,5 +110,7 @@ class ExchangeEconomyClass:
     def market_maker(self,p1):
         '''objective function to use for question 5'''
         par = self.par
+        x1A,x2A = self.demand_A(p1)
+        return -self.utility_A(x1A,x2A)
 
     
