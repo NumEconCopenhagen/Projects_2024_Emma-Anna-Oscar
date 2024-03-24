@@ -141,17 +141,6 @@ class ExchangeEconomyClass:
         result = optimize.minimize(lambda x: -self.utility_A(x[0], x[1]), x0, constraints=constraints)
         x1, x2 = result.x
         return x1, x2
-        
-    def market_equilibrium_allocation(self):
-    
-        def objective_function(p1):
-            x1A, x2A = self.demand_A(p1)
-            return -self.utility_A(x1A, x2A)
-        result = optimize.minimize_scalar(objective_function)
-        optimal_p1 = result.x
-        x1A, x2A = self.demand_A(optimal_p1)
-        wA1 = x1A
-        wA2 = x2A
-        return wA1, wA2
+
     
 
