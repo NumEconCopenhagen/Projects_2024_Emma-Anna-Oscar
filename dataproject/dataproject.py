@@ -1,16 +1,22 @@
-def keep_regs(df, regs):
-    """ Example function. Keep only the subset regs of regions in data.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
+import json
 
-    Args:
-        df (pd.DataFrame): pandas dataframe 
+# user written modules
+import dataproject
 
-    Returns:
-        df (pd.DataFrame): pandas dataframe
+# installing API reader, that will allow to load data from DST.
+%pip install git+https://github.com/alemartinello/dstapi
+%pip install pandas-datareader
 
-    """ 
+import pandas_datareader # install with `pip install pandas-datareader`
+from dstapi import DstApi # install with `pip install git+https://github.com/alemartinello/dstapi`
+
+class DstAPI:
+    def __init__(self):
+        par = self.par = SimpleNamespace()
     
-    for r in regs:
-        I = df.reg.str.contains(r)
-        df = df.loc[I == False] # keep everything else
-    
-    return df
+    def importdata(self):
+
