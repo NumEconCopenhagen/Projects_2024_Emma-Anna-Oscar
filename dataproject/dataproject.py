@@ -1,14 +1,10 @@
-%pip install git+https://github.com/alemartinello/dstapi
-%pip install pandas-datareader
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from matplotlib_venn import venn2
 import json
-import pandas_datareader
-from dstapi import DstApi
+
 
 '''Importing data from Jobindsats JSON file'''
 with open('International Labor.json', 'r') as f:
@@ -102,26 +98,132 @@ def clean_json_data():
 
     return int_lb_cleaned
 
-def clean_dst_empl():
-    ''' Defining a callable function to use for cleaning our data from DST '''
-    employees = DstApi('LBESK03')
 
-    print(f'Before cleaning, the data from DST contains {employees.shape[0]} observations and {employees.shape[1]} variables.')
-    print(f'Since we have extracted all the data from the source on DST, we need to select only the variables that are relevant for our analysis'.)
+def clean_dst_empl(employees):
+    ''' Defining a callable function to use for cleaning our data from DST ''' 
+    print(f'Since we have extracted all the data from the source on DST, we need to select only the variables that are relevant for our analysis')
     
     params = employees._define_base_params(language='en')
 
-    # For the employment data, we first define our parameters so that we get only data from january 2014 to january 2024.
+    print(f'For the employment data, we first define our parameters so that we get only data from january 2014 to january 2024 and only for the total of industries.')
     params = {'table': 'LBESK03',
     'format': 'BULK',
     'lang': 'en',
-    'variables': [{'code': 'BRANCHEDB071038', 'values': ['*']},
+    'variables': [{'code': 'BRANCHEDB071038', 'values': ['TOT']},
     {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
 
-    # Then, we retract the data we defined, drop the column of industry since we do not need it and rename the columns to english, simple titles.
+    print(f'Then, we retract the parameters we defined, into our DataFrame, drop the industry since we do not need to split the data on industry, and rename the columns to english, simple titles.')
     empl = employees.get_data(params=params)
     empl.drop(['BRANCHEDB071038'], axis=1, inplace=True)
     empl.rename(columns = {'INDHOLD':'employees', 'TID':'time'}, inplace=True)
 
+    print(f'The cleaned dataset contains {empl.shape[1]} columns and {empl.shape[0]} observations.')
     return empl
+
+
+def clean_dst_shortage1(lb_short_service):
+    ''' Defining a callable function to use for cleaning our data from DST ''' 
+    print(f'Again, as for all the DST data, we need to select only the variables that are relevant for our analysis')
+
+    params = lb_short_service._define_base_params(language='en')
+    
+    print(f'For the labor shortage data, we need to sort through the dataset a bit more when defining out variables:')
+    print(f'We need to specify which industries we want to get data from, since the dataset contains both broad and narrow categories.')
+    print(f'Furhtermore, we want to get data only for the labor shortage and from january 2014 to january 2024.')
+    params = {'table': 'KBS2',
+    'format': 'BULK',
+    'lang': 'en',
+    'variables': [{'code': 'BRANCHE07', 'values': [
+        '000',
+        '005',
+        '015',
+        '035',
+        '045',
+        '060',
+        '065',
+        '080'
+    ]},
+    {'code': 'TYPE', 'values': ['MAAK']},
+    {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
+
+    print(f'We retrieve the parameters and sort the data by time and industry.')
+    lab_short_service = lb_short_service.get_data(params=params)
+    lab_short_service.sort_values(by = ['TID', 'BRANCHE07'], inplace=True)
+
+    print(f'Then, we drop the column, TYPE, since we only have data for the labor shortage anyways, and this column would otherwise be used to split the data into diffeereeent categories of production limitations.')
+    print(f'We also drop the old index and reset it.')
+    
+    lab_short_service.drop(['TYPE'], axis = 1, inplace = True)
+    lab_short_service.rename(columns = {'BRANCHE07':'industry', 'TID':'time', 'INDHOLD':'labor_shortage'}, inplace=True)
+    lab_short_service.reset_index(drop=True, inplace=True)
+
+    print(f'We rename the industry codes to the industry names, so that they match the industries in the international labor data.')
+    lab_short_service['industry'] = lab_short_service.industry.replace({
+        '000':'total','SERVICES TOTAL':'total',
+        '005':'transport','TRANSPORT (49-53)':'transport',
+        '015':'hotels_restaurants','TOURISME (55-56, 79)': 'hotels_restaurants',
+        '035':'information_communication','COMMUNICATION AND INFORMATION (58, 61-63)':'information_communication',
+        '045':'finance_real_estate','FINANCE, INSURANCE AND REAL ESTATE (64-65, 68)': 'finance_real_estate',
+        '060':'research_consultancy','CONSULTANCY, RESEARCH AND OTHERS (69-74)':'research_consultancy',
+        '065':'cleaning_etc', 'CLEANING AND OTHER OPERATIONEL SERVICE (77-78, 81-82)':'cleaning_etc',
+        '080':'culture_leisure','ARTS, RECREATION AND OTHER SERVICES (90-95)':'culture_leisure',
+        })
+
+    print(f'We convert the time variable into datetime variables.')
+    lab_short_service['time'] = pd.to_datetime(lab_short_service['time'], format='%YM%m')
+
+    print(f'The cleaned dataset contains {lab_short_service.shape[1]} columns and {lab_short_service.shape[0]} observations.')
+
+    return lab_short_service
+
+
+def clean_dst_shortage2(lb_short_manu):
+    ''' Defining a callable function to use for cleaning our data from DST ''' 
+    print(f'Again, as for all the DST data, we need to select only the variables that are relevant for our analysis')
+    params = lb_short_manu._define_base_params(language='en')
+
+    params = {'table': 'BARO3',
+    'format': 'BULK',
+    'lang': 'en',
+    'variables': [{'code': 'BRANCHE07', 'values': ['C']},
+    {'code': 'TYPE', 'values': ['AMA']},
+    {'code': 'Tid', 'values': ['>2013K4<=2024K1']}]}
+
+    print(f'We retreieve the parameters we defined into the DataFrame and sort the variables by time.')
+    lab_short_manu = lb_short_manu.get_data(params=params)
+    lab_short_manu.sort_values(by = ['TID'], inplace=True)
+    print(f'We then rename the columns to english, simple titles and reset the index.')
+    lab_short_manu.rename(columns={'BRANCHE07': 'industry', 'TID': 'time', 'INDHOLD': 'labor_shortage'}, inplace=True)
+    lab_short_manu.reset_index(drop=True, inplace=True)
+    print(f'We drop the industry and type columns, since we onle neeed data for the total industry')
+    lab_short_manu.drop(['TYPE'], axis=1, inplace=True)
+    lab_short_manu.drop(['industry'], axis=1, inplace=True)
+    print(f'Finally, we set the time variable to datetime variables.')
+    lab_short_manu['time'] = pd.to_datetime(lab_short_manu['time'], format='mixed')
+
+    print(f'The cleaned dataset contains {lab_short_manu.shape[1]} columns and {lab_short_manu.shape[0]} observations.')
+    print(f'The reason that the number of observations differ, is that manufacturing labor shortagae data is only publishedc once a quarter.')
+    return lab_short_manu
+
+
+def clean_dst_shortage3(lb_short_cons):
+    print(f'The method for the cleaning of this dataset is exactly the same as for the manufacturinng sector.')
+    params = lb_short_cons._define_base_params(language='en')
+
+    params = {'table': 'KBYG33',
+    'format': 'BULK',
+    'lang': 'en',
+    'variables': [{'code': 'BRANCHE07', 'values': ['F']},
+    {'code': 'TYPE', 'values': ['AMA']},
+    {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
+
+    lab_short_cons = lb_short_cons.get_data(params=params)
+    lab_short_cons.drop(columns=['TYPE', 'BRANCHE07'], inplace=True)
+    lab_short_cons.sort_values(by = ['TID'], inplace=True)
+    lab_short_cons.rename(columns={'TID': 'time', 'INDHOLD': 'labor_shortage'}, inplace=True)
+    lab_short_cons.reset_index(drop=True, inplace=True)
+    lab_short_cons['time'] = pd.to_datetime(lab_short_cons['time'], format='%YM%m')
+
+    print(f'The cleaned dataset contains {lab_short_cons.shape[1]} columns and {lab_short_cons.shape[0]} observations.')
+    return lab_short_cons
 
