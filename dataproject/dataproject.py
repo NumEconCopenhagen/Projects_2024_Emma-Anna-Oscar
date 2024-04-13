@@ -55,7 +55,6 @@ def clean_json_data():
     # Now we can convert our 'Time' variable into a datetime_variable.
     print('We convert our time Variable into datetime variables.')
     int_lb_copy['time'] = pd.to_datetime(int_lb_copy['time'], format='%b %Y')
-    int_lb_copy['time'] = int_lb_copy['time'].dt.strftime('%YM%m')
 
     # We now sort through the data, first by time.
     int_lb_copy.sort_values(by='time')
