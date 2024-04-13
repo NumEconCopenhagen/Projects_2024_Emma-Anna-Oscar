@@ -1,38 +1,21 @@
+%pip install git+https://github.com/alemartinello/dstapi
+%pip install pandas-datareader
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
+from matplotlib_venn import venn2
 import json
-import pandas_datareader # install with `pip install pandas-datareader`
-from dstapi import DstApi # install with `pip install git+https://github.com/alemartinello/dstapi`
-
-# importing the actual data from DST
-employees = DstApi('LBESK03')
-lb_short_service = DstApi('KBS2')
-lb_short_manu = DstApi('BARO3')
-lb_short_cons = DstApi('KBYG33')
-with open('International Labor.json', 'r') as f:
-    int_data = json.load(f)
-int_lb = pd.DataFrame(int_data)
-
-# cleaning the 'LBESK03' dataset
-params = employees._define_base_params(language='en')
-
-params = {'table': 'LBESK03',
- 'format': 'BULK',
- 'lang': 'en',
- 'variables': [{'code': 'BRANCHEDB071038', 'values': ['TOT']},
-  {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
-
-empl = employees.get_data(params=params)
-empl.head(5)
+import pandas_datareader
+from dstapi import DstApi
 
 '''Importing data from Jobindsats JSON file'''
 with open('International Labor.json', 'r') as f:
     int_data = json.load(f)
 int_lb = pd.DataFrame(int_data)
 
-def clean_data():
+def clean_json_data():
     ''' Defining a callable function to use for cleaning our JSON data file '''
     print(f'Before cleaning, the JSON datafile from JobIndsats contains {int_lb.shape[0]} observations and {int_lb.shape[1]} variables.')
 
@@ -45,8 +28,8 @@ def clean_data():
     int_lb_copy.drop(4, axis=1, inplace=True)
 
     # The columns are currently named 0,1,...,4. This doesn't say a lot, so we rename all columns:
-    int_lb_copy.rename(columns = {0:'Time'}, inplace=True)
-    int_lb_copy.rename(columns= {2:'Industry'}, inplace=True)
+    int_lb_copy.rename(columns = {0:'time'}, inplace=True)
+    int_lb_copy.rename(columns= {2:'industry'}, inplace=True)
     int_lb_copy.rename(columns={3:'int_empl'}, inplace=True)
 
     print('We have removed two columns and renamed the remaining.')
@@ -70,21 +53,21 @@ def clean_data():
 
     # We would like to sort our data by time. To be able to do so, we convert the 'time' variable into datetime variables.
     # All our variables are in the format 'month, year' but in Danish. So we need to translate the 'Time' values from Danish to English
-    int_lb_copy['Time'] = int_lb_copy['Time'].str.replace("Maj", "May")
-    int_lb_copy['Time'] = int_lb_copy['Time'].str.replace("Okt", "Oct")
+    int_lb_copy['time'] = int_lb_copy['time'].str.replace("Maj", "May")
+    int_lb_copy['time'] = int_lb_copy['time'].str.replace("Okt", "Oct")
 
     # Now we can convert our 'Time' variable into a datetime_variable.
-    print('We convert our Time Variable into datetime variables.')
-    int_lb_copy['Time'] = pd.to_datetime(int_lb_copy['Time'], format='%b %Y')
-    int_lb_copy['Time'] = int_lb_copy['Time'].dt.strftime('%YM%m')
+    print('We convert our time Variable into datetime variables.')
+    int_lb_copy['time'] = pd.to_datetime(int_lb_copy['time'], format='%b %Y')
+    int_lb_copy['time'] = int_lb_copy['time'].dt.strftime('%YM%m')
 
     # We now sort through the data, first by time.
-    int_lb_copy.sort_values(by='Time')
+    int_lb_copy.sort_values(by='time')
     print('We now convert the DataFrame using the .pivot method, using time as index, industries as columns and international labor as our observations.')
-    int_lb_pivot = int_lb_copy.pivot(index='Time', columns='Industry', values='int_empl')
+    int_lb_pivot = int_lb_copy.pivot(index='time', columns='industry', values='int_empl')
 
     # The industries are still in Danish, rename to English and in line with our data from DST:
-    print('All our industries are in Danish, so we rename them to english')
+    print('All our industries are in Danish, so we rename them to English.')
     int_lb_pivot.rename(columns={'Andre serviceydelser  mv.':'other_services'}, inplace=True)
     int_lb_pivot.rename(columns={'Ejendomshandel og udlejning':'real_estate'}, inplace=True)
     int_lb_pivot.rename(columns={'Finansiering og forsikring':'finance_insurance'}, inplace=True)
@@ -119,4 +102,26 @@ def clean_data():
 
     return int_lb_cleaned
 
+def clean_dst_empl():
+    ''' Defining a callable function to use for cleaning our data from DST '''
+    employees = DstApi('LBESK03')
+
+    print(f'Before cleaning, the data from DST contains {employees.shape[0]} observations and {employees.shape[1]} variables.')
+    print(f'Since we have extracted all the data from the source on DST, we need to select only the variables that are relevant for our analysis'.)
+    
+    params = employees._define_base_params(language='en')
+
+    # For the employment data, we first define our parameters so that we get only data from january 2014 to january 2024.
+    params = {'table': 'LBESK03',
+    'format': 'BULK',
+    'lang': 'en',
+    'variables': [{'code': 'BRANCHEDB071038', 'values': ['*']},
+    {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
+
+    # Then, we retract the data we defined, drop the column of industry since we do not need it and rename the columns to english, simple titles.
+    empl = employees.get_data(params=params)
+    empl.drop(['BRANCHEDB071038'], axis=1, inplace=True)
+    empl.rename(columns = {'INDHOLD':'employees', 'TID':'time'}, inplace=True)
+
+    return empl
 
