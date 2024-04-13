@@ -34,7 +34,7 @@ int_lb = pd.DataFrame(int_data)
 
 def clean_data():
     ''' Defining a callable function to use for cleaning our JSON data file '''
-    print(f'Before cleaning, the JSON datafile from JobIndsats contains {int_lb.shape[0]} observations and {int_lb.shape[1]}')
+    print(f'Before cleaning, the JSON datafile from JobIndsats contains {int_lb.shape[0]} observations and {int_lb.shape[1]} variables.')
 
     # Copying the DataFrame, which we will clean, incase we need the original data.
     int_lb_copy = int_lb.copy()
@@ -50,7 +50,7 @@ def clean_data():
     int_lb_copy.rename(columns={3:'int_empl'}, inplace=True)
 
     print('We have removed two columns and renamed the remaining.')
-    print(f'The dataset now contains {int_lb_copy.shape[0]} observations and {int_lb_copy.shape[1]} variables')
+    print(f'The dataset now contains {int_lb_copy.shape[0]} observations and {int_lb_copy.shape[1]} variables.')
 
     # Our observations for international employment are currently in the 'string' format. We want them to be numbers.
     string_empl = int_lb_copy['int_empl']
@@ -68,7 +68,17 @@ def clean_data():
     # Lastly, we replace the string format of the original series and replace it with the new integer series:
     int_lb_copy['int_empl'] = inter_empl
 
-    # We now sort through the data by, first by sorting the data by time.
+    # We would like to sort our data by time. To be able to do so, we convert the 'time' variable into datetime variables.
+    # All our variables are in the format 'month, year' but in Danish. So we need to translate the 'Time' values from Danish to English
+    int_lb_copy['Time'] = int_lb_copy['Time'].str.replace("Maj", "May")
+    int_lb_copy['Time'] = int_lb_copy['Time'].str.replace("Okt", "Oct")
+
+    # Now we can convert our 'Time' variable into a datetime_variable.
+    print('We convert our Time Variable into datetime variables.')
+    int_lb_copy['Time'] = pd.to_datetime(int_lb_copy['Time'], format='%b %Y')
+    int_lb_copy['Time'] = int_lb_copy['Time'].dt.strftime('%YM%m')
+
+    # We now sort through the data, first by time.
     int_lb_copy.sort_values(by='Time')
     print('We now convert the DataFrame using the .pivot method, using time as index, industries as columns and international labor as our observations.')
     int_lb_pivot = int_lb_copy.pivot(index='Time', columns='Industry', values='int_empl')
@@ -107,6 +117,6 @@ def clean_data():
 
     print(f'The cleaned dataset now contains 8 columns (industries) and {int_lb_cleaned.shape[0]} observations')
 
-    return
+    return int_lb_cleaned
 
 
