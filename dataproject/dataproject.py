@@ -226,3 +226,44 @@ def clean_dst_shortage3(lb_short_cons):
     print(f'The cleaned dataset contains {lab_short_cons.shape[1]} columns and {lab_short_cons.shape[0]} observations.')
     return lab_short_cons
 
+
+def for_merging_json():
+    ''' Defining a callable function to use for cleaning our JSON data file '''
+    # Copying the DataFrame, which we will clean, incase we need the original data.
+    int_lb_copy = int_lb.copy()
+
+    # As we've only extracted the data from 2014 and after, we do not need to drop any time-dependent variables.
+    # First, we don't need the second and last column, so we drop these:
+    int_lb_copy.drop(1, axis=1, inplace=True)
+    int_lb_copy.drop(4, axis=1, inplace=True)
+
+    # The columns are currently named 0,1,...,4. This doesn't say a lot, so we rename all columns:
+    int_lb_copy.rename(columns = {0:'time'}, inplace=True)
+    int_lb_copy.rename(columns= {2:'industry'}, inplace=True)
+    int_lb_copy.rename(columns={3:'int_empl'}, inplace=True)
+
+    # Our observations for international employment are currently in the 'string' format. We want them to be numbers.
+    string_empl = int_lb_copy['int_empl']
+
+    # All our observations are written as Danish 1000, e.g. 2.184 which is supposed to be 2184 and not decimals. 
+    # The '.' means we can't convert the numbers directly to integers so we convert them to floats first:
+    float_empl = string_empl.astype(float)
+
+    # Next we multiply all observations by 1000 and convert to integers:
+    inter_empl = float_empl.multiply(1000).astype(int)
+    
+    # Lastly, we replace the string format of the original series and replace it with the new integer series:
+    int_lb_copy['int_empl'] = inter_empl
+
+    # We would like to sort our data by time. To be able to do so, we convert the 'time' variable into datetime variables.
+    # All our variables are in the format 'month, year' but in Danish. So we need to translate the 'Time' values from Danish to English
+    int_lb_copy['time'] = int_lb_copy['time'].str.replace("Maj", "May")
+    int_lb_copy['time'] = int_lb_copy['time'].str.replace("Okt", "Oct")
+
+    # Now we can convert our 'Time' variable into a datetime_variable.
+    int_lb_copy['time'] = pd.to_datetime(int_lb_copy['time'], format='%b %Y')
+
+    # We now sort through the data, first by time.
+    int_lb_copy.sort_values(by='time')
+
+    return int_lb_copy
