@@ -306,6 +306,9 @@ def checking_data(int_lb2,empl_industry):
     print(f'industries in empl_industry data, but not in international workers data: {diff_i}')
     return
 
+    # We use the inner-merge method on both the time and industry variables because: 
+    # 1) while both data frames are sorted by the time variables, the industries are not in the same order. We therefore merge on both these variables, to make sure the corresponding values of total and international employment match,
+    # 2) Even though both datasets contains the same time variable and industry variable, we do not want to risk ending up with missing variables. We therefore use the inner-method.
 def merging_datasets(int_lb2,empl_industry):
     ''' Defining a callable function for merging the two datasets '''
     inner = pd.merge(empl_industry,int_lb2,how='inner',on=['industry','time'])
