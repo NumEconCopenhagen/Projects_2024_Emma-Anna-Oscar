@@ -228,42 +228,89 @@ def clean_dst_shortage3(lb_short_cons):
 
 
 def for_merging_json():
-    ''' Defining a callable function to use for cleaning our JSON data file '''
-    # Copying the DataFrame, which we will clean, incase we need the original data.
+    ''' Defining a callable function to use for cleaning our JSON data file before merging '''
+    # Most of this code is copied from (identical) to the start of the original cleaning process. 
+    # The difference is that we donot use the .pivot() method this time, to make it more simple for mergning later.
     int_lb_copy = int_lb.copy()
 
-    # As we've only extracted the data from 2014 and after, we do not need to drop any time-dependent variables.
-    # First, we don't need the second and last column, so we drop these:
     int_lb_copy.drop(1, axis=1, inplace=True)
     int_lb_copy.drop(4, axis=1, inplace=True)
-
-    # The columns are currently named 0,1,...,4. This doesn't say a lot, so we rename all columns:
     int_lb_copy.rename(columns = {0:'time'}, inplace=True)
     int_lb_copy.rename(columns= {2:'industry'}, inplace=True)
     int_lb_copy.rename(columns={3:'int_empl'}, inplace=True)
-
-    # Our observations for international employment are currently in the 'string' format. We want them to be numbers.
     string_empl = int_lb_copy['int_empl']
-
-    # All our observations are written as Danish 1000, e.g. 2.184 which is supposed to be 2184 and not decimals. 
-    # The '.' means we can't convert the numbers directly to integers so we convert them to floats first:
     float_empl = string_empl.astype(float)
-
-    # Next we multiply all observations by 1000 and convert to integers:
     inter_empl = float_empl.multiply(1000).astype(int)
-    
-    # Lastly, we replace the string format of the original series and replace it with the new integer series:
     int_lb_copy['int_empl'] = inter_empl
-
-    # We would like to sort our data by time. To be able to do so, we convert the 'time' variable into datetime variables.
-    # All our variables are in the format 'month, year' but in Danish. So we need to translate the 'Time' values from Danish to English
     int_lb_copy['time'] = int_lb_copy['time'].str.replace("Maj", "May")
     int_lb_copy['time'] = int_lb_copy['time'].str.replace("Okt", "Oct")
-
-    # Now we can convert our 'Time' variable into a datetime_variable.
     int_lb_copy['time'] = pd.to_datetime(int_lb_copy['time'], format='%b %Y')
-
-    # We now sort through the data, first by time.
     int_lb_copy.sort_values(by='time')
 
+    # New code: in the previous cleaning process, we converted each seperate industry to a column, using the .pivot, and then renamed.
+    # We do not do so here, but instead replace all strings in the observations in the industry column to the corresponding English name.
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Ejendomshandel og udlejning','real_estate')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Finansiering og forsikring','finance_insurance')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Information og kommunikation','information_communication')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Kultur og fritid','culture_leisure')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Andre serviceydelser  mv.','other_services')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Hoteller og restauranter','hotels_restaurents')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Rejsebureau, rengøring o.a. operationel service','cleaning_etc')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Transport','transport')
+    int_lb_copy['industry'] = int_lb_copy['industry'].str.replace('Videnservice','research_consultancy')
+
     return int_lb_copy
+
+
+def dst_empl_merging(employees_2):
+    ''' Defining a callable function to use for cleaning our data from DST ''' 
+    #Most of this code is again copied from above, but this time we need the actual sub-industries.
+    params = employees_2._define_base_params(language='en')
+
+    params = {'table': 'LBESK03',
+    'format': 'BULK',
+    'lang': 'en',
+    'variables': [{'code': 'BRANCHEDB071038', 'values': ['I','4','5','6','7','8','M','N','10']},
+    {'code': 'Tid', 'values': ['>2013M12<=2024M01']}]}
+
+    emplo = employees_2.get_data(params=params)
+    emplo.rename(columns = {'INDHOLD':'employees', 'TID':'time', 'BRANCHEDB071038':'industry'}, inplace=True)
+    emplo['time'] = pd.to_datetime(emplo['time'], format='%YM%m')
+
+    # Like above, we replace all strings of industry observations with the corresponding industry name from above.
+    emplo['industry'] = emplo['industry'].str.replace('I Accommodation and food service activities','hotels_restaurents')
+    emplo['industry'] = emplo['industry'].str.replace('M Knowledge-based services','research_consultancy')
+    emplo['industry'] = emplo['industry'].str.replace('N Travel agent, cleaning, and other operationel services','cleaning_etc')
+    emplo['industry'] = emplo['industry'].str.replace('10 Arts, entertainment and recration activities','culture_leisure')
+    emplo['industry'] = emplo['industry'].str.replace('4 Trade and transport etc.','transport')
+    emplo['industry'] = emplo['industry'].str.replace('5 Information and communication','information_communication')
+    emplo['industry'] = emplo['industry'].str.replace('6 Financial and insurance','finance_insurance')
+    emplo['industry'] = emplo['industry'].str.replace('7 Real estate','real_estate')
+    emplo['industry'] = emplo['industry'].str.replace('8 Other business services','other_services')
+
+    return emplo
+
+def checking_data(int_lb2,empl_industry):
+    ''' Before we merge the datasets, we check if there are any observations in either time or industry columns, that do not match '''
+    print(f'Dates in empl_industry: {empl_industry.time.unique()}')
+    print(f'Industries in empl_industry = {empl_industry.industry.unique()}, total = {len(empl_industry.industry.unique())}')
+    print(f'Dates in int_lb: {int_lb2.time.unique()}')
+    print(f'Industries in int_lb = {int_lb2.industry.unique()}, total = {len(int_lb2.industry.unique())}')
+
+    # Finding the date observations that are in the employee dataset, but not the interntaional workers dataset. 
+    diff_d = [d for d in empl_industry.time.unique() if d not in int_lb2.time.unique()]
+    print(f'dates in employment data, but not in international workers data: {diff_d}')
+
+    diff_i = [i for i in empl_industry.industry.unique() if i not in int_lb2.industry.unique()] 
+    # doing the same for industries
+    print(f'industries in empl_industry data, but not in international workers data: {diff_i}')
+    return
+
+def merging_datasets(int_lb2,empl_industry):
+    ''' Defining a callable function for merging the two datasets '''
+    inner = pd.merge(empl_industry,int_lb2,how='inner',on=['industry','time'])
+    inner.sort_values(by='time')
+    print('Merge succesfull, the dataset now contains data on both total amount of employees and international employees')
+    display(inner.head(5))
+    print(f'Industries in the merged dataset: {inner.industry.unique()}, total = {len(inner.industry.unique())}')
+    return inner
