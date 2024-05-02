@@ -1,10 +1,13 @@
+%matplotlib inline
 from scipy import optimize
 from types import SimpleNamespace
 import numpy as np
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
 
 
-class CournotOligopoly:
-    """ This class implements the Cournot oligopoly model"""
+class CournotDuopoly:
+    """ This class implements the Cournot Duopoly model"""
     def __init__(self,a,b,c):
         par = self.par = SimpleNamespace()
         par.a = a
@@ -55,4 +58,10 @@ class CournotOligopoly:
         q_init = np.array([0, 0])
         sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
         return sol
-
+    
+    def ne_plot(self):
+        par = self.par
+        fig = plt.figure(dpi=100)
+        ax = fig.add_subplot(1,1,1)
+        ax.plot()   
+    
