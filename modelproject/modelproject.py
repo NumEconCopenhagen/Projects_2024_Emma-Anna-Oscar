@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
 from ipywidgets import interact
-
+from scipy.optimize import minimize_scalar
 
 class CournotDuopoly:
     """ This class implements the Cournot Duopoly model"""
@@ -83,6 +83,71 @@ class CournotDuopoly:
             ax.set_title('Nash Equilibria in Cournot Duopoly')
             ax.legend()
 
+class BertrandOligopoly:
+    """ This class implements the Bertrand oligopoly model"""
+    def __init__(self,a,b,c):
+        par = self.par = SimpleNamespace()
+        par.a = a
+        par.b = b
+        par.c = c
+
+    def demand(self, p1, p2):
+        par = self.par
+        q1 = (par.a-p1)/par.b
+        q2 = (par.a-p2)/par.b
+        return q1, q2
+    
+    def profit1(self, p1, p2):
+        par = self.par
+        q1 = self.demand(p1,p2)[0]
+        if p1 < p2:
+            return (p1-par.c)*q1
+        elif p1 == p2:
+            return (p1-par.c)*q1 / 2
+        else:
+            return 0
+        
+    def profit2(self, p1, p2):
+        par = self.par
+        q2 = self.demand(p1,p2)[1]
+        if p2 < p1:
+            return (p2-par.c)*q2
+        elif p2 == p1:
+            return (p2-par.c)*q2 / 2
+        else:
+            return 0
+
+    def BR1(self, p2):
+        par = self.par
+        value_of_choice = lambda p1: -self.profit1(p1, p2)
+        p1_opt = minimize_scalar(value_of_choice, bounds=(par.c, par.a), method='bounded')
+        return p1_opt.x
+    
+    def BR2(self, p1):
+        par = self.par
+        value_of_choice = lambda p2: -self.profit2(p1, p2)
+        p2_opt = minimize_scalar(value_of_choice, bounds=(par.c, par.a), method='bounded')
+        return p2_opt.x
+    
+    def nash_equilibrium(self):
+        par = self.par
+        p1 = minimize_scalar(lambda p1: -self.profit1(p1, self.BR2(p1)), bounds=(par.c, par.a), method='bounded').x
+        p2 = minimize_scalar(lambda p2: -self.profit2(self.BR1(p2), p2), bounds=(par.c, par.a), method='bounded').x
+        return p1, p2
+    
+    def plot_nash_equilibrium(self, p_range):
+        p1_ne, p2_ne = self.nash_equilibrium()
+        br1_values = [self.BR1(p2) for p2 in p_range]
+        br2_values = [self.BR2(p1) for p1 in p_range]
+        plt.plot(p_range, br1_values, label='Best Response of Firm 1', color='blue')
+        plt.plot(br2_values, p_range, label='Best Response of Firm 2', color='red')
+        plt.scatter(p1_ne, p2_ne, color='green', label='Nash Equilibrium')
+        plt.xlabel('Price for Firm 1')
+        plt.ylabel('Price for Firm 2')
+        plt.title('Bertrand Oligopoly: Nash Equilibrium')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
 
