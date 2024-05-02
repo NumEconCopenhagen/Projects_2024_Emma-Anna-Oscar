@@ -1,9 +1,9 @@
-%matplotlib inline
 from scipy import optimize
 from types import SimpleNamespace
 import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
+from ipywidgets import interact
 
 
 class CournotDuopoly:
@@ -60,18 +60,29 @@ class CournotDuopoly:
         return sol
     
     def ne_plot(self):
-        par = self.par
+        @interact(a = (20,50,1), b = (0.1,1,0.1), c = (0,20,1))
+        def plot(a,b,c):
+            dp_cournot = CournotDuopoly(a,b,c)
 
-        q_ne = self.nash_equilibrium()
-        q_val = np.linspace(0, max(q_ne)*1.5, 100)
-        br1_val = [self.BR1(q2) for q2 in q_val]
-        br2_val = [self.BR2(q1) for q1 in q_val]
+            q_ne = dp_cournot.nash_equilibrium()
+            q_val = np.linspace(0, max(q_ne)*1.5, 100)
+            br1_val = [dp_cournot.BR1(q2) for q2 in q_val]
+            br2_val = [dp_cournot.BR2(q1) for q1 in q_val]
 
 
-        fig = plt.figure(dpi=100)
-        ax = fig.add_subplot(1,1,1)
-        ax.plot(q_val, br1_val, label='BR for firm 1')
-        ax.plot(q_val, br2_val, label='BR for firm 2')
-        ax.plot(q_ne[1], q_ne[0], 'o')
-        
-    
+            fig = plt.figure(dpi=100)
+            ax = fig.add_subplot(1,1,1)
+            ax.plot(q_val, br1_val, label='BR for firm 1', color='grey', linestyle='--')
+            ax.plot(br2_val, q_val, label='BR for firm 2', color='grey')
+            ax.plot(q_ne[1], q_ne[0], 'bo')
+            ax.annotate(f'NE: ({q_ne[0]:.1f}, {q_ne[1]:.1f})', xy=q_ne, xytext=(10,10), textcoords='offset points',  
+                        arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.2'))
+            
+            ax.set_xlabel('Quantity for firm 1')
+            ax.set_ylabel('Quantity for firm 2')
+            ax.set_title('Nash Equilibria in Cournot Duopoly')
+            ax.legend()
+
+
+
+
