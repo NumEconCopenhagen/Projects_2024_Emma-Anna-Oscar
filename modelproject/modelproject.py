@@ -1,10 +1,11 @@
 from scipy import optimize
 from types import SimpleNamespace
+import numpy as np
 
 
-class CoutnotOligopoly:
+class CournotOligopoly:
     """ This class implements the Cournot oligopoly model"""
-    def __init__(self):
+    def __init__(self,a,b,c):
         par = self.par = SimpleNamespace()
         par.a = a
         par.b = b
@@ -13,27 +14,45 @@ class CoutnotOligopoly:
 
     def invdemand(self,q1,q2):
         par = self.par
-        p = a - b*(q1+q2)
+        p = par.a - par.b*(q1+q2)
         return p
     
     def cost(self,qi):
         par = self.par
-        cost = c*qi
+        cost = par.c*qi
         return cost
 
-    def profit1(self,q1):
+    def profit1(self,q1,q2):
         par = self.par
-        p = self.invdemand()
-        cost1 = self.cost(q1)
-        profit1 = p*q1 - cost1
+        profit1 = self.invdemand(q1,q2)*q1 - self.cost(q1)
         return profit1
 
-    def profit2(self,q2):
+    def profit2(self,q1,q2):
         par = self.par
-        p = self.invdemand()
-        cost2 = self.cost(q2)
-        profit2 = p*q2 - cost2
+        profit2 = self.invdemand(q1,q2)*q2 - self.cost(q2)
         return profit2
 
-
+    def BR1(self,q2):
+        par = self.par
+        value_of_choice = lambda q1: -self.profit1(q1,q2)
+        q1_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        return q1_opt.x[0]
     
+    def BR2(self,q1):
+        par = self.par
+        value_of_choice = lambda q2: -self.profit2(q1,q2)
+        q2_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        return q2_opt.x[0]
+    
+    def q_eval(self,q):
+        par = self.par
+        q_eval = np.array([q[0] - self.BR1(q[1]),
+                           q[1] - self.BR2(q[0])])
+        return q_eval
+
+    def nash_equilibrium(self):
+        par = self.par
+        q_init = np.array([0, 0])
+        sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
+        return sol
+
