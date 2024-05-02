@@ -61,7 +61,17 @@ class CournotDuopoly:
     
     def ne_plot(self):
         par = self.par
+
+        q_ne = self.nash_equilibrium()
+        q_val = np.linspace(0, max(q_ne)*1.5, 100)
+        br1_val = [self.BR1(q2) for q2 in q_val]
+        br2_val = [self.BR2(q1) for q1 in q_val]
+
+
         fig = plt.figure(dpi=100)
         ax = fig.add_subplot(1,1,1)
-        ax.plot()   
+        ax.plot(q_val, br1_val, label='BR for firm 1')
+        ax.plot(q_val, br2_val, label='BR for firm 2')
+        ax.plot(q_ne[1], q_ne[0], 'o')
+        
     
