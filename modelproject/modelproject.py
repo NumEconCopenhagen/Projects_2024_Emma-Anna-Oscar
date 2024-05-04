@@ -151,3 +151,53 @@ class BertrandOligopoly:
 
 
 
+class CournotOligopoly:
+    """ This class implements the Cournot Oligopoly model"""
+    def __init__(self,a,b,c):
+        par = self.par = SimpleNamespace()
+        par.a = a
+        par.b = b
+        par.c = c
+
+    def calculating_market(self):
+        i = np.linspace(0,N,1)
+        N = np.any
+        q = np.array()
+
+        for qi in q:
+            def invdemand(self,q):
+                par = self.par
+                p = par.a - par.b*(q)
+                return p
+            
+            def cost(self,qi):
+                par = self.par
+                cost = par.c*qi
+                return cost
+
+            def profiti(self,qi,q):
+                par = self.par
+                profit1 = self.invdemand(q)*qi - self.cost(q)
+                return profit1
+
+            def BRi(self,qi,q):
+                par = self.par
+                value_of_choice = lambda qi: -self.profit1(q)
+                qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+                return qi_opt.x[0]
+            
+            def q_eval(self,q):
+                par = self.par
+                q_eval = np.array(q[0] - self.BRi(q[1]))
+                return q_eval
+
+            def nash_equilibrium(self):
+                par = self.par
+                q_init = np.array([0, 0])
+                sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
+                return sol
+            
+            q.append()
+        
+        return
+
