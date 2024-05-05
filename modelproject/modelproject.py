@@ -150,30 +150,32 @@ class BertrandOligopoly:
         plt.show()
 
 
-
 class CournotOligopoly:
-    """ This class implements the Cournot Oligopoly model"""
+    """ This class implements the Cournot Oligopoly model with i firms"""
     def __init__(self,a,b,c):
         par = self.par = SimpleNamespace()
         par.a = a
         par.b = b
         par.c = c
 
-    def calculating_market(self):
-        i = np.linspace(0,N,1)
-        N = np.any
-        q = np.array()
+    def complete_competition(self):
+        p = BertrandOligopoly.nash_equilibrium[0]
+        return p
 
-        for qi in q:
-            def invdemand(self,q):
-                par = self.par
-                p = par.a - par.b*(q)
-                return p
-            
+    def calculating_market(self):
+        i = 0 # counter
+        N = np.linspace(1,None,1) # number of firms, starts at 1 firm, no upper bound, only integers allowed (full firms)
+        q = qi*N # q = total production of all firms, qi = individual production
+        while i <= N:
             def cost(self,qi):
                 par = self.par
                 cost = par.c*qi
                 return cost
+        
+            def invdemand(self,q):
+                par = self.par
+                p = par.a - par.b*(q)
+                return p
 
             def profiti(self,qi,q):
                 par = self.par
@@ -185,7 +187,7 @@ class CournotOligopoly:
                 value_of_choice = lambda qi: -self.profit1(q)
                 qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
                 return qi_opt.x[0]
-            
+                    
             def q_eval(self,q):
                 par = self.par
                 q_eval = np.array(q[0] - self.BRi(q[1]))
@@ -196,8 +198,9 @@ class CournotOligopoly:
                 q_init = np.array([0, 0])
                 sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
                 return sol
-            
-            q.append()
         
-        return
+            i += 1                
+            q.append()
+            
+            return
 
