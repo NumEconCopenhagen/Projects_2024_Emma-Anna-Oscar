@@ -14,7 +14,6 @@ class CournotDuopoly:
         par.b = b
         par.c = c
 
-
     def invdemand(self,q1,q2):
         par = self.par
         p = par.a - par.b*(q1+q2)
@@ -93,41 +92,40 @@ class BertrandOligopoly:
 
     def demand(self, p1, p2):
         par = self.par
-        q1 = (par.a-p1)/par.b
-        q2 = (par.a-p2)/par.b
+        if p1 < p2:
+            q1 = (par.a-p1)/par.b
+            q2 = 0
+        elif p1 == p2:
+            q1 = (par.a-p1)/(2*par.b)
+            q2 = (par.a-p2)/(2*par.b)
+        elif p1 > p2:
+            q1 = 0
+            q2 = (par.a-p2)/par.b 
         return q1, q2
     
     def profit1(self, p1, p2):
         par = self.par
         q1 = self.demand(p1,p2)[0]
-        if p1 < p2:
-            return (p1-par.c)*q1
-        elif p1 == p2:
-            return (p1-par.c)*q1 / 2
-        else:
-            return 0
+        profit1 = (p1-par.c)*q1
+        return profit1
         
     def profit2(self, p1, p2):
         par = self.par
         q2 = self.demand(p1,p2)[1]
-        if p2 < p1:
-            return (p2-par.c)*q2
-        elif p2 == p1:
-            return (p2-par.c)*q2 / 2
-        else:
-            return 0
+        profit2 = (p2-par.c)*q2 
+        return profit2
 
     def BR1(self, p2):
         par = self.par
         value_of_choice = lambda p1: -self.profit1(p1, p2)
-        p1_opt = minimize_scalar(value_of_choice, bounds=(par.c, par.a), method='bounded')
-        return p1_opt.x
+        p1_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        return p1_opt.x[0]
     
     def BR2(self, p1):
         par = self.par
         value_of_choice = lambda p2: -self.profit2(p1, p2)
-        p2_opt = minimize_scalar(value_of_choice, bounds=(par.c, par.a), method='bounded')
-        return p2_opt.x
+        p2_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        return p2_opt.x[0]
     
     def nash_equilibrium(self):
         par = self.par
