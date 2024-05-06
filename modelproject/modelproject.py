@@ -212,3 +212,61 @@ class CournotOligopoly:
             
             return
 
+class BeeertrandOligopoly:
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+    
+    def demand(self, p):
+        return (self.a - p) / self.b
+    
+    def profit_firm1(self, p1, p2):
+        q1 = self.demand(p1) 
+        if p1 < p2:
+            return (p1-self.c)*q1
+        elif p1 == p2:
+            return (p1-self.c)*q1 / 2
+        else:
+            return 0
+
+    def profit_firm2(self, p1, p2):
+        q2 = self.demand(p2)
+        if p2 < p1:
+            return (p2-self.c)*q2
+        elif p2 == p1:
+            return (p2-self.c)*q2 / 2
+        else:
+            return 0
+
+    def BR1(self, p2):
+        def objective(p1):
+            return -self.profit_firm1(p1, p2)
+        result = minimize(objective, self.c, bounds=[(self.c, None)])
+        return result.x[0]
+
+    def BR2(self, p1):
+        def objective(p2):
+            return -self.profit_firm2(p1, p2)
+        result = minimize(objective, self.c, bounds=[(self.c, None)])
+        return result.x[0]
+
+    def plot_nash_equilibrium(self):
+        p1_ne = self.BR1(self.c)
+        p2_ne = self.BR2(self.c)
+
+        plt.scatter(p1_ne, p2_ne, color='red', label='Nash Equilibrium')
+
+        p1_values = np.linspace(self.c, 10, 100)
+        p2_values_firm1 = [self.BR1(p2) for p2 in p1_values]
+        p2_values_firm2 = [self.BR2(p1) for p1 in p1_values]
+        plt.plot(p1_values, p2_values_firm1, color='purple', linestyle='--', label='Best Response Firm 1')
+        plt.plot(p1_values, p2_values_firm2, color='orange', linestyle='--', label='Best Response Firm 2')
+
+        plt.xlabel('Price for Firm 1')
+        plt.ylabel('Price for Firm 2')
+        plt.title('Nash Equilibrium Prices and Best Response Functions')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
