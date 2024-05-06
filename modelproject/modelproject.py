@@ -198,3 +198,48 @@ class CournotOligopoly:
         q_init = np.array([0, 0])
         sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
         return sol
+    
+class BertrandOligopoly:
+    """This class shows the analytical solution to the Bertrand oligopoly for N firms"""
+    def __init__(self,c):
+        par = self.par = SimpleNamespace()
+        par.c = c
+    
+    def nash_price(self):
+        par = self.par
+        p = par.c
+        return p
+    
+    def nash_profit(self):
+        par = self.par
+        profits = []
+        i = 1
+        while i <= 500:
+            profit = (self.nash_price()-par.c)/2
+            profits.append(profit)
+            i+=1
+            
+        return profits
+
+
+class CournotOligopoly:
+    def __init__(self,c):
+        par = self.par = SimpleNamespace()
+        par.c = c
+    
+    def nash_quantity(self):
+        par = self.par
+        qs = []
+        for n in range(1,500):
+            q = (20-par.c)/((n+1)*2)
+            qs.append(q)
+        return qs
+    
+    def nash_profit(self):
+        par = self.par
+        qs = self.nash_quantity()
+        profits = []
+        for q in qs:
+            profit = (20-2*n)*q - c*q
+            profits.append(profit)
+        return profits
