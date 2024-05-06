@@ -227,19 +227,11 @@ class CournotOligopoly:
         par = self.par = SimpleNamespace()
         par.c = c
     
-    def nash_quantity(self):
-        par = self.par
-        qs = []
-        for n in range(1,500):
-            q = (20-par.c)/((n+1)*2)
-            qs.append(q)
-        return qs
-    
     def nash_profit(self):
         par = self.par
-        qs = self.nash_quantity()
         profits = []
-        for q in qs:
-            profit = (20-2*n)*q - c*q
+        for n in range(1,501):
+            q = (20-par.c)/((n+1)*2)
+            profit = (20-2*n)*q - par.c*q
             profits.append(profit)
         return profits
