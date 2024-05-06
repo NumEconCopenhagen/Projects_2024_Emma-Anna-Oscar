@@ -160,55 +160,39 @@ class BertrandDuopoly:
 
 class CournotOligopoly:
     """ This class implements the Cournot Oligopoly model with i firms"""
-    def __init__(self,a,b,c):
+    def __init__(self,c,i):
         par = self.par = SimpleNamespace()
-        par.a = a
-        par.b = b
         par.c = c
-
-    def complete_competition(self):
-        p_comp = BertrandOligopoly.nash_equilibrium[0]
-        return p_comp
-
-    def calculating_market(self):
-        i = 0 # counter
-        N = np.linspace(1,None,1) # number of firms, starts at 1 firm, no upper bound, only integers allowed (full firms)
-        # q = qi*N # q = total production of all firms, qi = individual production
-        while i <= N:
-            def cost(self,qi):
-                par = self.par
-                cost = par.c*qi
-                return cost
+        par.i = i
         
-            def invdemand(self,q):
-                par = self.par
-                p = par.a - par.b*(q*i)
-                return p
+    def cost(self,qi):
+        par = self.par
+        cost = par.c*qi
+        return cost
 
-            def profiti(self,qi,q):
-                par = self.par
-                profit1 = self.invdemand(q*i)*qi - self.cost(q*i)
-                return profit1
+    def invdemand(self,qi):
+        par = self.par
+        p = 20 - 2*(qi*par.i)
+        return p
 
-            def BRi(self,q):
-                par = self.par
-                value_of_choice = lambda qi: -self.profit1(q*(i-1))
-                qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-                return qi_opt.x[0]
-                    
-            def q_eval(self,q):
-                par = self.par
-                q_eval = np.array(q[0] - self.BRi(q[1]))
-                return q_eval
+    def profiti(self,qi):
+        par = self.par
+        profit1 = self.invdemand(qi*par.i)*qi - self.cost(qi)
+        return profit1
 
-            def nash_equilibrium(self):
-                par = self.par
-                q_init = np.array([0, 0])
-                sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
-                return sol
-        
-            i += 1                
-            q.append()
+    def BRi(self):
+        par = self.par
+        value_of_choice = lambda qi: -self.profit1(qi*(par.i-1))
+        qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        return qi_opt.x[0]
             
-            return
+    def q_eval(self,q):
+        par = self.par
+        q_eval = np.array(q[0] - self.BRi(q[1]))
+        return q_eval
 
+    def nash_equilibrium(self):
+        par = self.par
+        q_init = np.array([0, 0])
+        sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
+        return sol
