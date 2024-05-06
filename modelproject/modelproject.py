@@ -159,11 +159,12 @@ class BertrandDuopoly:
             ax.legend()
 
 class CournotOligopoly:
-    """ This class implements the Cournot Oligopoly model with i firms"""
-    def __init__(self,c,i):
+    """ This class implements the Cournot Oligopoly model with n firms"""
+    def __init__(self,c,i,n):
         par = self.par = SimpleNamespace()
         par.c = c
         par.i = i
+        par.n = n
         
     def cost(self,qi):
         par = self.par
@@ -172,8 +173,9 @@ class CournotOligopoly:
 
     def invdemand(self,qi):
         par = self.par
-        p = 20 - 2*(qi*par.i)
-        return p
+        for i in range(1,par.n,20):
+            p = 20 - 2*()
+            return p
 
     def profiti(self,qi):
         par = self.par
