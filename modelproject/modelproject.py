@@ -214,7 +214,7 @@ class BertrandOligopoly:
         par = self.par
         profits = []
         i = 1
-        while i <= 500:
+        while i <= 50:
             profit = (self.nash_price()-par.c)/2
             profits.append(profit)
             i+=1
@@ -230,8 +230,8 @@ class CournotOligopoly:
     def nash_profit(self):
         par = self.par
         profits = []
-        for n in range(1,501):
+        for n in range(1,51):
             q = (20-par.c)/((n+1)*2)
-            profit = (20-2*n)*q - par.c*q
+            profit = (20-2*q*n)*q - par.c*q
             profits.append(profit)
         return profits
