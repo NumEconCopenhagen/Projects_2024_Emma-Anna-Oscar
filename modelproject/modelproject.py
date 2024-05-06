@@ -115,18 +115,32 @@ class BertrandOligopoly:
         q2 = self.demand(p1,p2)[1]
         profit2 = (p2-par.c)*q2 
         return profit2
+    
+    def maximize_profits(self):
+        par = self.par
+        def objective_function1(p1):
+             return -self.profit1(p1, self.BR2(p1))
+        
+        def objective_function2(p2):
+            return -self.profit2(self.BR1(p2), p2)
+        
+        p1_init = par.a/2
+        p2_init = par.a/2
+
+        result1 = optimize.minimize(objective_function1, p1_init, method='Nelder-Mead')
+        result2 = optimize.minimize(objective_function2, p2_init, method='Nelder-Mead')
+
+        return result1.x[0], -result1.fun, result2.x[0], -result2.fun
 
     def BR1(self, p2):
         par = self.par
-        value_of_choice = lambda p1: -self.profit1(p1, p2)
-        p1_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-        return p1_opt.x[0]
+        res = minimize_scalar(lambda p1: -self.profit1(p1, p2), bounds=(0, par.a), method='bounded')
+        return res.x
     
     def BR2(self, p1):
         par = self.par
-        value_of_choice = lambda p2: -self.profit2(p1, p2)
-        p2_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-        return p2_opt.x[0]
+        res = minimize_scalar(lambda p2: -self.profit2(p1, p2), bounds=(0, par.a), method='bounded')
+        return res.x
     
     def nash_equilibrium(self):
         par = self.par
