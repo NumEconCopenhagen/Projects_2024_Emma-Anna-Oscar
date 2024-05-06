@@ -204,13 +204,13 @@ class CournotOligopoly:
         par.c = c
 
     def complete_competition(self):
-        p = BertrandOligopoly.nash_equilibrium[0]
-        return p
+        p_comp = BertrandOligopoly.nash_equilibrium[0]
+        return p_comp
 
     def calculating_market(self):
         i = 0 # counter
         N = np.linspace(1,None,1) # number of firms, starts at 1 firm, no upper bound, only integers allowed (full firms)
-        q = qi*N # q = total production of all firms, qi = individual production
+        # q = qi*N # q = total production of all firms, qi = individual production
         while i <= N:
             def cost(self,qi):
                 par = self.par
@@ -219,17 +219,17 @@ class CournotOligopoly:
         
             def invdemand(self,q):
                 par = self.par
-                p = par.a - par.b*(q)
+                p = par.a - par.b*(q*i)
                 return p
 
             def profiti(self,qi,q):
                 par = self.par
-                profit1 = self.invdemand(q)*qi - self.cost(q)
+                profit1 = self.invdemand(q*i)*qi - self.cost(q*i)
                 return profit1
 
-            def BRi(self,qi,q):
+            def BRi(self,q):
                 par = self.par
-                value_of_choice = lambda qi: -self.profit1(q)
+                value_of_choice = lambda qi: -self.profit1(q*(i-1))
                 qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
                 return qi_opt.x[0]
                     
