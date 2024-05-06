@@ -301,6 +301,11 @@ class BeeertrandOligopoly:
             return -self.profit_firm2(p1, p2)
         result = minimize(objective, self.c, bounds=[(self.c, None)])
         return result.x[0]
+    
+    def find_nash_equilibrium(self):
+        p1_ne = self.BR1(self.c)
+        p2_ne = self.BR1(self.c)
+        return p1_ne, p2_ne
 
     def plot_nash_equilibrium(self):
         p1_ne = self.BR1(self.c)
