@@ -158,46 +158,6 @@ class BertrandDuopoly:
             ax.set_title('Figure 2: Nash Equilibria in Bertrand Duopoly')
             ax.legend()
 
-class CournotOligopoly:
-    """ This class implements the Cournot Oligopoly model with n firms"""
-    def __init__(self,c,i,n):
-        par = self.par = SimpleNamespace()
-        par.c = c
-        par.i = i
-        par.n = n
-        
-    def cost(self,qi):
-        par = self.par
-        cost = par.c*qi
-        return cost
-
-    def invdemand(self,qi):
-        par = self.par
-        for i in range(1,par.n,20):
-            p = 20 - 2*()
-            return p
-
-    def profiti(self,qi):
-        par = self.par
-        profit1 = self.invdemand(qi*par.i)*qi - self.cost(qi)
-        return profit1
-
-    def BRi(self):
-        par = self.par
-        value_of_choice = lambda qi: -self.profit1(qi*(par.i-1))
-        qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-        return qi_opt.x[0]
-            
-    def q_eval(self,q):
-        par = self.par
-        q_eval = np.array(q[0] - self.BRi(q[1]))
-        return q_eval
-
-    def nash_equilibrium(self):
-        par = self.par
-        q_init = np.array([0, 0])
-        sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
-        return sol
     
 class Oligopoly:
     """This class shows the analytical solution to the Bertrand oligopoly for N firms"""
