@@ -218,7 +218,6 @@ class BertrandOligopoly:
             profit = (self.nash_price()-par.c)/2
             profits.append(profit)
             i+=1
-            
         return profits
 
 
