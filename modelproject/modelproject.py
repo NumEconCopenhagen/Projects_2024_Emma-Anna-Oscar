@@ -74,7 +74,7 @@ class CournotDuopoly:
             ax = fig.add_subplot(1,1,1)
             ax.plot(q_val, br1_val, label='BR for firm 1', color='grey', linestyle='--')
             ax.plot(br2_val, q_val, label='BR for firm 2', color='grey')
-            ax.plot(q_ne[1], q_ne[0], 'bo')
+            ax.plot(q_ne[1], q_ne[0], 'o', color='mediumpurple')
             ax.annotate(f'NE: ({q_ne[0]:.1f}, {q_ne[1]:.1f})', xy=q_ne, xytext=(10,10), textcoords='offset points',  
                         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.2'))
             
@@ -149,7 +149,7 @@ class BertrandDuopoly:
             ax = fig.add_subplot(1,1,1)
             ax.plot(p_val, br1_val, label='BR for firm 1', color='grey', linestyle='--')
             ax.plot(br2_val, p_val, label='BR for firm 2', color='grey')
-            ax.plot(p_ne[1], p_ne[0], 'bo')
+            ax.plot(p_ne[1], p_ne[0], 'o', color='mediumpurple')
             ax.annotate(f'NE: ({p_ne[0]:.1f}, {p_ne[1]:.1f})', xy=p_ne, xytext=(10,10), textcoords='offset points',  
                         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.2'))
             
@@ -199,34 +199,28 @@ class CournotOligopoly:
         sol = optimize.fsolve(lambda q: self.q_eval(q), q_init)
         return sol
     
-class BertrandOligopoly:
+class Oligopoly:
     """This class shows the analytical solution to the Bertrand oligopoly for N firms"""
     def __init__(self,c):
         par = self.par = SimpleNamespace()
         par.c = c
     
-    def nash_price(self):
+    def nash_price_bertrand(self):
         par = self.par
         p = par.c
         return p
     
-    def nash_profit(self):
+    def nash_profit_bertrand(self):
         par = self.par
         profits = []
         i = 1
         while i <= 50:
-            profit = (self.nash_price()-par.c)/2
+            profit = (self.nash_price_bertrand()-par.c)/2
             profits.append(profit)
             i+=1
         return profits
-
-
-class CournotOligopoly:
-    def __init__(self,c):
-        par = self.par = SimpleNamespace()
-        par.c = c
     
-    def nash_profit(self):
+    def nash_profit_cournot(self):
         par = self.par
         profits = []
         for n in range(1,51):
@@ -234,3 +228,56 @@ class CournotOligopoly:
             profit = (20-2*q*n)*q - par.c*q
             profits.append(profit)
         return profits
+
+    def plot_convergence(self):
+        oligopoly1 = Oligopoly(1)
+        oligopoly2 = Oligopoly(5)
+        oligopoly3 = Oligopoly(10)
+        oligopoly4 = Oligopoly(15)
+
+        firms = np.linspace(0,20,50)
+
+        fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), dpi=100, constrained_layout=True)
+        fig.suptitle('Convergence to zero-profits as number of firms increases, Cournot & Bertrand Oligopoly', fontsize=16)
+        axs[0][0].set_title('Marginal cost = 1')
+        axs[0][0].set_xlim([0,20])
+        axs[0][0].set_ylim([-1,45])
+        axs[0][0].set_xlabel('# of firms')
+        axs[0][0].set_ylabel('$\pi$')
+        axs[0][0].plot(firms, oligopoly1.nash_profit_cournot(), label='Cournot', color='indigo')
+        axs[0][0].plot(firms, oligopoly1.nash_profit_bertrand(), label='Bertrand', color='mediumpurple', linestyle='--')
+        axs[0][0].legend()
+        axs[0][0].grid('on', linestyle = '--')
+
+        axs[0][1].set_title('Marginal cost = 5')
+        axs[0][1].set_xlim([0,20])
+        axs[0][1].set_ylim([-1,45])
+        axs[0][1].set_xlabel('# of firms')
+        axs[0][1].set_ylabel('$\pi$')
+        axs[0][1].plot(firms, oligopoly2.nash_profit_cournot(), label='Cournot', color='indigo')
+        axs[0][1].plot(firms, oligopoly2.nash_profit_bertrand(), label='Bertrand', color='mediumpurple', linestyle='--')
+        axs[0][1].legend()
+        axs[0][1].grid('on', linestyle = '--')
+
+        axs[1][0].set_title('Marginal cost = 10')
+        axs[1][0].set_xlim([0,20])
+        axs[1][0].set_ylim([-1,45])
+        axs[1][0].set_xlabel('# of firms')
+        axs[1][0].set_ylabel('$\pi$')
+        axs[1][0].plot(firms, oligopoly3.nash_profit_cournot(), label='Cournot', color='indigo')
+        axs[1][0].plot(firms, oligopoly3.nash_profit_bertrand(), label='Bertrand', color='mediumpurple', linestyle='--')
+        axs[1][0].legend()
+        axs[1][0].grid('on', linestyle = '--')
+
+
+        axs[1][1].set_title('Marginal cost = 15')
+        axs[1][1].set_xlim([0,20])
+        axs[1][1].set_ylim([-1,45])
+        axs[1][1].set_xlabel('# of firms')
+        axs[1][1].set_ylabel('$\pi$')
+        axs[1][1].plot(firms, oligopoly4.nash_profit_cournot(), label='Cournot', color='indigo')
+        axs[1][1].plot(firms, oligopoly4.nash_profit_bertrand(), label='Bertrand', color='mediumpurple', linestyle='--')
+        axs[1][1].legend()
+        axs[1][1].grid('on', linestyle = '--')
+
+        plt.show()
