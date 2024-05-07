@@ -80,7 +80,7 @@ class CournotDuopoly:
             
             ax.set_xlabel('Quantity for firm 1')
             ax.set_ylabel('Quantity for firm 2')
-            ax.set_title('Nash Equilibria in Cournot Duopoly')
+            ax.set_title('Figure 1: Nash Equilibria in Cournot Duopoly')
             ax.legend()
 
 
@@ -155,7 +155,7 @@ class BertrandDuopoly:
             
             ax.set_xlabel('Price for firm 1')
             ax.set_ylabel('Price for firm 2')
-            ax.set_title('Nash Equilibria in Bertrand Duopoly')
+            ax.set_title('Figure 2: Nash Equilibria in Bertrand Duopoly')
             ax.legend()
 
 class CournotOligopoly:
@@ -238,7 +238,7 @@ class Oligopoly:
         firms = np.linspace(0,20,50)
 
         fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), dpi=100, constrained_layout=True)
-        fig.suptitle('Convergence to zero-profits as number of firms increases, Cournot & Bertrand Oligopoly', fontsize=16)
+        fig.suptitle('Figure 3: Convergence to zero-profits as number of firms increases, Cournot & Bertrand Oligopoly', fontsize=16)
         axs[0][0].set_title('Marginal cost = 1')
         axs[0][0].set_xlim([0,20])
         axs[0][0].set_ylim([-1,45])
