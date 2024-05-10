@@ -213,15 +213,19 @@ class Oligopoly:
     """This class shows the analytical solution to the Bertrand oligopoly for N firms"""
     def __init__(self,c):
         par = self.par = SimpleNamespace()
+        # We only wish to analyise what happens for given values of c. We therefor keep a and b constant at a=20 and b=2.
         par.c = c
     
     def nash_price_bertrand(self):
         par = self.par
+        # We know the price will be set equal to marginal cost, ergo:
         p = par.c
         return p
     
     def nash_profit_bertrand(self):
         par = self.par
+        # The profts of all firms will be equal to zero, no matter how many firms are present. 
+        # We will use this as what the Cournot model converges towards, meaning this method essentially allows for plotting a straight line = 0 for n firms.
         profits = []
         i = 1
         while i <= 50:
@@ -231,6 +235,8 @@ class Oligopoly:
         return profits
     
     def nash_profit_cournot(self):
+        # We would like to analysie the convergence of a Cournot Oligopoly towards complete compettion, ergo profit equal to zero.
+        # This method calculates the NE of the Cournot model for a given value of c and n firms. 
         par = self.par
         profits = []
         for n in range(1,51):
@@ -240,13 +246,16 @@ class Oligopoly:
         return profits
 
     def plot_convergence(self):
+        # Calling the methods above for given values of c (1, 5, 10, 15) to analyse their respective convergence. 
         oligopoly1 = Oligopoly(1)
         oligopoly2 = Oligopoly(5)
         oligopoly3 = Oligopoly(10)
         oligopoly4 = Oligopoly(15)
 
+        # Set the possible number of firms within the market to be between 0 and 20, with 50 steps in between.
         firms = np.linspace(0,20,50)
 
+        # plotting the first convergence for c=1
         fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(12, 8), dpi=100, constrained_layout=True)
         fig.suptitle('Figure 3: Convergence to zero-profits as number of firms increases, Cournot & Bertrand Oligopoly', fontsize=16)
         axs[0][0].set_title('Marginal cost = 1')
@@ -254,11 +263,14 @@ class Oligopoly:
         axs[0][0].set_ylim([-1,45])
         axs[0][0].set_xlabel('# of firms')
         axs[0][0].set_ylabel('$\pi$')
+        # We use the Bertrand model as the baseline end goal where the firms profit is equal to zero, just like in a market of complete competition.
+        # We do this because in the Bertrand model, even two firms set their price equal to marginal cost, which is the same outcome as complete competition markets. 
         axs[0][0].plot(firms, oligopoly1.nash_profit_cournot(), label='Cournot', color='indigo')
         axs[0][0].plot(firms, oligopoly1.nash_profit_bertrand(), label='Bertrand', color='mediumpurple', linestyle='--')
         axs[0][0].legend()
         axs[0][0].grid('on', linestyle = '--')
 
+        # same plot for c=5
         axs[0][1].set_title('Marginal cost = 5')
         axs[0][1].set_xlim([0,20])
         axs[0][1].set_ylim([-1,45])
@@ -269,6 +281,7 @@ class Oligopoly:
         axs[0][1].legend()
         axs[0][1].grid('on', linestyle = '--')
 
+        # for c=10
         axs[1][0].set_title('Marginal cost = 10')
         axs[1][0].set_xlim([0,20])
         axs[1][0].set_ylim([-1,45])
@@ -279,7 +292,7 @@ class Oligopoly:
         axs[1][0].legend()
         axs[1][0].grid('on', linestyle = '--')
 
-
+        # for c=15
         axs[1][1].set_title('Marginal cost = 15')
         axs[1][1].set_xlim([0,20])
         axs[1][1].set_ylim([-1,45])
