@@ -102,7 +102,7 @@ class CournotDuopoly:
         #the Nash Equilibrium for different values of a, b and c.
         #First we use the @interact decorator to create sliders for the three parameters. It is important that a starts 
         #where c ends, so that a ≥ c always holds and we are not able to get negative quantities.
-        @interact(a = (20,50,1), b = (0.1,1,0.1), c = (0,20,1))
+        @interact(a = (20,50,1), b = (0.1,2,0.1), c = (0,20,1))
         def plot(a,b,c):
             #Now, we call the CournotDuopoly class with the interactive parameter values. 
             dp_cournot = CournotDuopoly(a,b,c)
