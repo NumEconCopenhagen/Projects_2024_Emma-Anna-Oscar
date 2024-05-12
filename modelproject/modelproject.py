@@ -135,16 +135,27 @@ class CournotDuopoly:
             ax.legend()
 
 class BertrandDuopoly:
-    """ This class implements the Bertrand Duopoly model"""
+    """ 
+    This class simulates a Bertrand duopoly where two firms strategically set prices for their identical products.
+    The class is able to find the Nash Equilibrium, given parameter values for the demand at cost zero, a, 
+    the slope of the demand curve, b, and the marginal cost, c.
+    After finding the Nash Equilibrium, the class is able to plot the best response functions and the Nash 
+    Equilibria with sliders for the three parameters.
+    """
     def __init__(self, a, b, c):
+        #Initializing the Bertrand duopoly by defining the parameters a, b and c. Using self as a reference later on.
         self.a = a
         self.b = b
         self.c = c
     
     def demand(self, p):
+        #Finding the demand function
+        #The demand function returns the quantity demanded with a given price p.
         return (self.a - p) / self.b
     
     def profit_firm1(self, p1, p2):
+        #Defining the profil function of firm 1, given the prices set by firm 1 and 2 respectively.
+        #The function provides us with the profit of firm 1 based on the demand function and the prices between firm 1 and 2.
         q1 = self.demand(p1) 
         if p1 < p2:
             return (p1-self.c)*q1
@@ -154,6 +165,8 @@ class BertrandDuopoly:
             return 0
 
     def profit_firm2(self, p1, p2):
+        #Defining the profil function of firm 2, given the prices set by firm 2 and 1 respectively.
+        #The function provides us with the profit of firm 2 based on the demand function and the prices between firm 1 and 2.
         q2 = self.demand(p2)
         if p2 < p1:
             return (p2-self.c)*q2
@@ -163,46 +176,78 @@ class BertrandDuopoly:
             return 0
 
     def BR1(self, p2):
+        #Defining the best response price for firm 1
         def objective(p1):
+        #We define the objective function as the negative profits of firm 1, so the minimization below results in a maximization.
             return -self.profit_firm1(p1, p2)
+        #Using the minimize function from scipy to find the optimal price in regards to maximizing firm 1's profit.
+        #We use bounds to specify that the price must not be below the marginal cost c.
         result = minimize(objective, self.c, bounds=[(self.c, None)])
+        #result.x provides the optimal solution for firm 1
         return result.x[0]
 
     def BR2(self, p1):
+        #The best response function for firm 2 is identical to BR1.
         def objective(p2):
             return -self.profit_firm2(p1, p2)
         result = minimize(objective, self.c, bounds=[(self.c, None)])
         return result.x[0]
     
     def p_eval(self,p):
+        #This function utilizes a root-finding algorithm to determine the Nash Equilibrium.
+        #It operates on a vector p with two elements, representing the prices set by both firms.
+        #Evaluating the best response functions of both firms based on p helps identify the exact point 
+        #where each firm optimally responds the the others strategy
+        #For firm 1, it computes the difference between its optimal price (p1) and the price that
+        #firm 2 optimally responds to (p2), using BR1.
+        #Similarly, for firm 2, it provides the difference between its optimal price (p2) and the price that
+        #firm 1 optimally responds to (p1), using BR2.
+        #The result is a 2x1 numpy array capturing the deviations from optimality for both firms.
         p_eval = np.array([p[0] - self.BR1(p[1]),
                            p[1] - self.BR2(p[0])])
         return p_eval
 
     def nash_equilibrium(self):
+        #This function uses a root finding algorithm to find the value of p (p1,p2) that makes p_eval equal to zero. 
+        #When p_eval is zero, both firms are best-responding to the other firm's price. This is our Nash Equilibrium.
+        #We start with an initial guess of [0,0].
         p_init = np.array([0, 0])
+
+        #The fsolve funtion now tries different values of p until both equations in p_eval are equal to zero.
         sol = optimize.fsolve(lambda p: self.p_eval(p), p_init)
+        #We return the solution, which is a 2x1 numpy-array containing the p1- and p2-values of the Nash Equilibrium.
         return sol
 
     def ne_plot(self):
+        #The ne_plot function is a method that allows us to create an interactive plot the best response functions and 
+        #the Nash Equilibrium for different values of a, b and c.
+        #First we use the @interact decorator to create sliders for the three parameters. It is important that a starts 
+        #where c ends, so that a ≥ c always holds and we are not able to get negative prices.
         @interact(a = (20,50,1), b = (0.1,1,0.1), c = (0,20,1))
         def plot(a,b,c):
+            #We call the Bertrand class
             dp_bertrand = BertrandDuopoly(a,b,c)
 
+            #We create a range of p-values to plot the best response functions against. The lower bound is 0 and the upper
+            #bound is 50% above the maximum p-value in the Nash Equilibrium, so that the plot is not too squeezed, regardless
+            #of the parameter values.
             p_ne = dp_bertrand.nash_equilibrium()
             p_val = np.linspace(0, max(p_ne)*1.5, 100)
             br1_val = [dp_bertrand.BR1(p2) for p2 in p_val]
             br2_val = [dp_bertrand.BR2(p1) for p1 in p_val]
 
-
+            #Initializing our figure and axis
             fig = plt.figure(dpi=100)
             ax = fig.add_subplot(1,1,1)
+            #We plot the best response functions against the range of q-values for firms 1 and firm 2, respectively.
             ax.plot(p_val, br1_val, label='BR for firm 1', color='grey', linestyle='--')
             ax.plot(br2_val, p_val, label='BR for firm 2', color='grey')
+            #We plot the Nash Equilibrium as a mediumpurple dot.
             ax.plot(p_ne[1], p_ne[0], 'o', color='mediumpurple')
             ax.annotate(f'NE: ({p_ne[0]:.1f}, {p_ne[1]:.1f})', xy=p_ne, xytext=(10,10), textcoords='offset points',  
                         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.2'))
             
+            #We set the labels and title of the plot and add a legend.
             ax.set_xlabel('Price for firm 1')
             ax.set_ylabel('Price for firm 2')
             ax.set_title('Figure 2: Nash Equilibria in Bertrand Duopoly')
