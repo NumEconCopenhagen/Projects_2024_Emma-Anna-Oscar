@@ -96,7 +96,7 @@ class ExchangeEconomyClass:
         for x1A in (x1A_vec):
             for x2A in (x2A_vec):
                 if (self.utility_A(x1A, x2A) >= self.utility_A(par.w1A, par.w2A)) and \
-                    (self.utility_B(1-x1A, 1-x1A)) >= self.utility_B(1-par.w1A, 1-par.w2A):
+                    (self.utility_B(1-x1A, 1-x2A)) >= self.utility_B(1-par.w1A, 1-par.w2A):
                     pareto_pairs.append((x1A, x2A))
         return pareto_pairs
     
