@@ -74,9 +74,8 @@ class ExchangeEconomyClass:
 
         i = 0
         for p1 in p1_vec:
-            eps_values = self.market_clearing_error()
-            eps1 = [pair[0] for pair in eps_values]
-            if abs(eps1[i]) < 0.009:
+            eps1_values, eps2_values = self.market_clearing_error()
+            if abs(eps1_values[i]) < 0.009:
                 market_clearing_price.append(p1)
             i = i+1
         return market_clearing_price
@@ -98,12 +97,49 @@ class ExchangeEconomyClass:
                     pareto_pairs.append((x1A, x2A))
         return pareto_pairs
     
-    def price_setter(self,p1):
-        '''objective function to use for maximizing (minimizing) in question 4'''
-        par = self.par
-        x1B,x2B = self.demand_B(p1)
-        return -self.utility_A(1-x1B, 1-x2B)
+    def price_setter_1(self):
+        '''Objective function for maximizing the utility of agent A when setting the price within P1'''
+        N = 75
+        p1_vec = np.linspace(0.5,2.5,N)
+        utility_best = -np.inf # initial maximum
+        p1_best = np.nan # not-a-number 
 
+        # We loop over the values in the vector of prices
+        for p1 in p1_vec:
+            # We find the demand of agent B for the prices we loop over
+            x1B, x2B = self.demand_B(p1)
+
+            # We define the current utility for agent A by inputting the demand
+            # for A when B's demand depends on the prices we loop over
+            utility_now = self.utility_A(1-x1B, 1-x2B)
+
+            # We create an if-statement that updates the optimal whenever it is greater
+            # than the previous optimal utility. Furthermore, we update the optimal price,
+            # the optimal quantities for A and the corresponding quantities for B.
+            if utility_now > utility_best:
+                utility_best = utility_now
+                p1_best = p1
+                x1A_best = 1-x1B
+                x2A_best = 1-x2B
+
+        return p1_best, utility_best, x1A_best, x2A_best
+
+    def price_setter_2(self):
+        '''Objective function for maximizing the utility of agent A when setting any positive price'''
+        # Setting the bounds of the price, which can be any positive number
+        bounds = [(0,None)]
+
+        # We make an initial guess of 2 for the price, since we saw in 4.1 that within the range of P1, this would be the optimal price
+        initial_guess = [2]
+
+        # We create an objective function that is the negative of the utility, sincne the optimizer minimizes.
+        # The utility is a function of demand evaulated in p1, so we get x1A and x1B that are variable in the p1-parameter.
+        objective = lambda p1: -self.utility_A(1-self.demand_B(p1)[0], 1-self.demand_B(p1)[1])
+
+        # We use the optimization algorithm to find the optimal price
+        result = optimize.minimize(objective, initial_guess, bounds=bounds)
+
+        return result.x[0]
 
     def market_maker(self,p1):
         '''objective function to use for question 5'''
