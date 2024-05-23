@@ -36,13 +36,9 @@ def clean_json_data():
     print(f'All our observations are of type: {type(string_empl[0])}. We want them to be integers.')
 
     # All our observations are written as Danish 1000, e.g. 2.184 which is supposed to be 2184 and not decimals. 
-    # The '.' means we can't convert the numbers directly to integers so we convert them to floats first:
-    float_empl = string_empl.astype(float)
+    # The '.' means we can't convert the numbers directly to integers so we remove this and then convert to intergers.
+    inter_empl = string_empl.str.replace('.', '').astype(int)
     print(f'The observations are now of type: {type(float_empl[0])} and the first observation is: {float_empl[0]}')
-
-    # Next we multiply all observations by 1000 and convert to integers:
-    inter_empl = float_empl.multiply(1000).astype(int)
-    print(f'The observations are now of type: {type(inter_empl[0])} and the first observation is: {inter_empl[0]}')
     
     # Lastly, we replace the string format of the original series and replace it with the new integer series:
     int_lb_copy['int_empl'] = inter_empl
@@ -115,6 +111,7 @@ def clean_dst_empl(employees):
     empl = employees.get_data(params=params)
     empl.drop(['BRANCHEDB071038'], axis=1, inplace=True)
     empl.rename(columns = {'INDHOLD':'employees', 'TID':'time'}, inplace=True)
+    empl['time'] = pd.to_datetime(empl['time'], format='%YM%m')
 
     print(f'The cleaned dataset contains {empl.shape[1]} columns and {empl.shape[0]} observations.')
     return empl
