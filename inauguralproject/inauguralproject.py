@@ -149,6 +149,7 @@ class ExchangeEconomyClass:
 
     
     def utilitarian_planner(self):
+        '''objective function to find the Utalitarian social planner's best allocation'''
         def agri_utility(x):
             x1A, x2A = x
             return self.utility_A(x1A, x2A) + self.utility_B(1-x1A, 1 - x2A)
