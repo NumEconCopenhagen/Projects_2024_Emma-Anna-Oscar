@@ -150,14 +150,21 @@ class ExchangeEconomyClass:
     
     def utilitarian_planner(self):
         '''objective function to find the Utalitarian social planner's best allocation'''
+        # We define the aggregate utility by summing over A's and B's utility at the variable x.
         def agri_utility(x):
+            # Defining x as x1A and x2A.
             x1A, x2A = x
             return self.utility_A(x1A, x2A) + self.utility_B(1-x1A, 1 - x2A)
+        # We build the constraints, making sure that the quantities are positive and less than 1.
         constraints = ({'type': 'ineq', 'fun': lambda x: x[0]},
                        {'type': 'ineq', 'fun': lambda x: x[1]},
                        {'type': 'ineq', 'fun': lambda x: 1 - x[0]},
                        {'type': 'ineq', 'fun': lambda x: 1 - x[1]})
+        
+        #Our initial guess, x0, we set to 0.5 for both agents.
         x0 = [0.5, 0.5]
+
+        # We use the optimization algorithm to find the optimal allocation where the total utility is highest.
         result = optimize.minimize(lambda x: -agri_utility(x), x0, constraints=constraints)
         optimal_allocation = result.x
         return optimal_allocation
