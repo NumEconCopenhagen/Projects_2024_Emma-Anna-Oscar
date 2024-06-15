@@ -15,14 +15,14 @@ class CournotDuopoly:
     Equilibria with sliders for the three parameters.
     """
     def __init__(self,a,b,c):
-        # Defining the parameters in order to refer to them as par.a, par.b, par.c later.
+        '''Defining the parameters in order to refer to them as par.a, par.b, par.c later.'''
         par = self.par = SimpleNamespace()
         par.a = a
         par.b = b
         par.c = c
 
     def invdemand(self,q1,q2):
-        #This function is for the inverse demand.
+        '''This function is for the inverse demand.'''
         #We create a reference to the parameters from the initialization.
         par = self.par
 
@@ -32,62 +32,54 @@ class CournotDuopoly:
         return p
     
     def cost(self,qi):
-        #This function is for the costs the firms face.
+        '''This function is for the costs the firms face.'''
         #We create a reference to the parameters from the initialization.
         par = self.par
 
-        #The cost is simply the quantity produced times the marginal cost, and we return the cost.
+        # qi refers to the quantity produced by firm i, so can be used to define the costs of either firm 1 or 2.
+        # The cost is simply the quantity produced times the marginal cost, and we return the cost.
         cost = par.c*qi
         return cost
 
-    def profit1(self,q1,q2):
-        #This function defines profits for firm 1.
-        #We call the inverse demand as a function of both quantities and the cost as a function of firm 1's own quantity.
-        #We return the profits of firm 1.
-        profit1 = self.invdemand(q1,q2)*q1 - self.cost(q1)
-        return profit1
+    def profit(self,qi,qj):
+        '''This function is for the profits of firm i.'''
+        #We call the inverse demand as a function of the given firm's own quantity, qi, and the other firm's quantity, qj.
+        #The cost is just called as a function of firm i's own quantity.
+        #We return the profits of firm i.
+        profit = self.invdemand(qi,qj)*qi - self.cost(qi)
+        return profit
 
-    def profit2(self,q1,q2):
-        #This function defines profits for firm 2.
-        #We call the inverse demand as a function of both quantities and the cost as a function of firm 2's own quantity.
-        #We return the profits of firm 2.
-        profit2 = self.invdemand(q1,q2)*q2 - self.cost(q2)
-        return profit2
-
-    def BR1(self,q2):
-        #This function defines the best response for firm 1.
-        #We define a value of choice as the negative profits of firm 1, so the minimization below results in a maximization.
-        #The value of choice function is evaluated in q1, since this is what we want to maximize with regards to.
-        value_of_choice = lambda q1: -self.profit1(q1,q2)
+    def BR(self,qj):
+        '''This function defines the best response for firm i.'''
+        #We define a value of choice as the negative profits of firm i, so the minimization below results in a maximization.
+        #qj refers to the quantity produced by the other firm. So for the best response of firm 1, qj would refer to firm 2's quantity.
+        #The value of choice function is evaluated in qj, since the best response of the firms depend on the quentity of the other firm.
+        value_of_choice = lambda qi: -self.profit(qi,qj)
         
-        #We define the optimal q1 as the minimized value of the value of choice function. We use the SLSQP method with a initial
+        #We define the optimal qi as the minimized value of the value of choice function. We use the SLSQP method with an initial
         #guess of 0.
-        q1_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-        #We return the first element of q1_opt to get the optimal quantity.
-        return q1_opt.x[0]
-    
-    def BR2(self,q1):
-        #The best response of firm 2 is exactly symmetrical to BR1. See the above description.
-        value_of_choice = lambda q2: -self.profit2(q1,q2)
-        q2_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
-        return q2_opt.x[0]
-    
+        qi_opt = optimize.minimize(value_of_choice, method='SLSQP', x0=0)
+        #We return the first element of q_opt to get the optimal quantity.
+        return qi_opt.x[0]
+ 
     def q_eval(self,q):
-        #This function allows us to use a root finding algorithm to find the Nash Equilibrium. 
+        '''This function allows us to use a root finding algorithm to find the Nash Equilibrium. '''
         #q_eval is a function of q, which is a vector with 2 elements that will be varied in the nash_equilibrium function.
         #We need this q to find the exact point where BOTH firms are best-responding to each other.
         #We evaluate the best response functions of both firms in q.
         #For firm 1, we return the difference between the FIRST element of q (the q1-value that firm 2 is best-responding to) 
-        #and the BR1-function evaluated in the SECOND element of q (corresponding to a given q2-value).
+        #and the BR-function evaluated in the SECOND element of q (corresponding to a given q2-value).
         #For firm 2, we return the difference between the SECOND element of q (the q2-value that firm 1 is best-responding to)
-        #and the BR2-function evaluated in the FIRST element of q (corresponding to a given q1-value).
+        #and the BR-function evaluated in the FIRST element of q (corresponding to a given q1-value).
+        #Since the firms are identical, their best response functions are the same, but this evaluation function still finds a vector
+        #that is evaluated so that firm 1 best responds to firm 2 and vice versa.
         #Thus, we get out a 2x1 numpy-array.
-        q_eval = np.array([q[0] - self.BR1(q[1]),
-                           q[1] - self.BR2(q[0])])
+        q_eval = np.array([q[0] - self.BR(q[1]),
+                           q[1] - self.BR(q[0])])
         return q_eval
 
     def nash_equilibrium(self):
-        #This function uses a root finding algorithm to find the value of q (q1,q2) that makes q_eval equal to zero. 
+        '''This function uses a root finding algorithm to find the value of q (q1,q2) that makes q_eval equal to zero.''' 
         #When q_eval is zero, both firms are best-responding to the other firm's quantity. This is our Nash Equilibrium.
         #We start with an initial guess of [0,0].
         q_init = np.array([0, 0])
@@ -98,8 +90,8 @@ class CournotDuopoly:
         return sol
     
     def ne_plot(self):
-        #The ne_plot function is a method that allows us to create an interactive plot the best response functions and 
-        #the Nash Equilibrium for different values of a, b and c.
+        '''The ne_plot function is a method that allows us to create an interactive plot the best response functions and 
+        the Nash Equilibrium for different values of a, b and c.'''
         #First we use the @interact decorator to create sliders for the three parameters. It is important that a starts 
         #where c ends, so that a ≥ c always holds and we are not able to get negative quantities.
         @interact(a = (20,50,1), b = (0.1,2,0.1), c = (0,20,1))
@@ -114,8 +106,8 @@ class CournotDuopoly:
             #of the parameter values.
             q_val = np.linspace(0, max(q_ne)*1.5, 100)
             #We create a list of the best response values in the range of q-values for firm 1 and firm 2, respectively.
-            br1_val = [dp_cournot.BR1(q2) for q2 in q_val]
-            br2_val = [dp_cournot.BR2(q1) for q1 in q_val]
+            br1_val = [dp_cournot.BR(q2) for q2 in q_val]
+            br2_val = [dp_cournot.BR(q1) for q1 in q_val]
 
             #We initialize our figure and axis.
             fig = plt.figure(dpi=100)
@@ -143,68 +135,53 @@ class BertrandDuopoly:
     Equilibria with sliders for the three parameters.
     """
     def __init__(self, a, b, c):
-        #Initializing the Bertrand duopoly by defining the parameters a, b and c. Using self as a reference later on.
+        '''Initializing the Bertrand duopoly by defining the parameters a, b and c. Using self as a reference later on.'''
         self.a = a
         self.b = b
         self.c = c
     
     def demand(self, p):
-        #Finding the demand function
-        #The demand function returns the quantity demanded with a given price p.
+        '''The demand function returns the quantity demanded with a given price p.'''
         return (self.a - p) / self.b
     
-    def profit_firm1(self, p1, p2):
-        #Defining the profil function of firm 1, given the prices set by firm 1 and 2 respectively.
-        #The function provides us with the profit of firm 1 based on the demand function and the prices between firm 1 and 2.
-        q1 = self.demand(p1) 
-        if p1 < p2:
-            return (p1-self.c)*q1
-        elif p1 == p2:
-            return (p1-self.c)*q1 / 2
+    def profit(self, pi, pj):
+        '''The profit function returns the profit of firm i, given the price set by firm i and j respectively.'''
+        #We define the quantity demanded by firm i, using the demand function.
+        qi = self.demand(pi)
+        #We create the binding conditions for the demand, as described in section 2.3.
+        #This way, we are able to capture the effects from the assumptions made in the Bertrand model.
+        if pi < pj:
+            return (pi-self.c)*qi
+        elif pi == pj:
+            return (pi-self.c)*qi / 2
         else:
             return 0
-
-    def profit_firm2(self, p1, p2):
-        #Defining the profil function of firm 2, given the prices set by firm 2 and 1 respectively.
-        #The function provides us with the profit of firm 2 based on the demand function and the prices between firm 1 and 2.
-        q2 = self.demand(p2)
-        if p2 < p1:
-            return (p2-self.c)*q2
-        elif p2 == p1:
-            return (p2-self.c)*q2 / 2
-        else:
-            return 0
-
-    def BR1(self, p2):
-        #Defining the best response price for firm 1
-        def objective(p1):
-        #We define the objective function as the negative profits of firm 1, so the minimization below results in a maximization.
-            return -self.profit_firm1(p1, p2)
-        #Using the minimize function from scipy to find the optimal price in regards to maximizing firm 1's profit.
-        #We use bounds to specify that the price must not be below the marginal cost c.
-        result = minimize(objective, self.c, bounds=[(self.c, None)])
-        #result.x provides the optimal solution for firm 1
-        return result.x[0]
-
-    def BR2(self, p1):
-        #The best response function for firm 2 is identical to BR1.
-        def objective(p2):
-            return -self.profit_firm2(p1, p2)
-        result = minimize(objective, self.c, bounds=[(self.c, None)])
-        return result.x[0]
     
+    def BR(self, pj):
+        '''The best response function for firm i, given the price set by firm j.'''
+        #First, we define an objective function for us to maximize.
+        def objective(pi):
+            #The objective function is the negative profit of firm i, so the minimization below results in a maximization.
+            return -self.profit(pi, pj)
+        #Using the maximize function from scipy to find the optimal price in regards to maximizing firm i's profit.
+        #We use bounds to specify that the price never goes below the marginal cost, c.
+        result = minimize(objective, self.c, bounds=[(self.c, None)])
+        #result.x provides the optimal solution for firm i.
+        return result.x[0]
+
+
     def p_eval(self,p):
-        #This function utilizes a root-finding algorithm to determine the Nash Equilibrium.
-        #It operates on a vector p with two elements, representing the prices set by both firms.
+        '''This function allows us to use a root finding algorithm to find the Nash Equilibrium.'''
+        #It operates on a vector, p, with two elements, representing the prices set by both firms.
         #Evaluating the best response functions of both firms based on p helps identify the exact point 
         #where each firm optimally responds the the others strategy
-        #For firm 1, it computes the difference between its optimal price (p1) and the price that
-        #firm 2 optimally responds to (p2), using BR1.
-        #Similarly, for firm 2, it provides the difference between its optimal price (p2) and the price that
-        #firm 1 optimally responds to (p1), using BR2.
+        #For firm 1, it computes the difference between its price (p1) and the best response to the price
+        #set by firm 2 (p2).
+        #Similarly, for firm 2, it provides the difference between its optimal price (p2), which firm 1 is best responding to,
+        #and the best response to the price set by firm 1 (p1).
         #The result is a 2x1 numpy array capturing the deviations from optimality for both firms.
-        p_eval = np.array([p[0] - self.BR1(p[1]),
-                           p[1] - self.BR2(p[0])])
+        p_eval = np.array([p[0] - self.BR(p[1]),
+                           p[1] - self.BR(p[0])])
         return p_eval
 
     def nash_equilibrium(self):
@@ -233,8 +210,8 @@ class BertrandDuopoly:
             #of the parameter values.
             p_ne = dp_bertrand.nash_equilibrium()
             p_val = np.linspace(0, max(p_ne)*1.5, 100)
-            br1_val = [dp_bertrand.BR1(p2) for p2 in p_val]
-            br2_val = [dp_bertrand.BR2(p1) for p1 in p_val]
+            br1_val = [dp_bertrand.BR(p2) for p2 in p_val]
+            br2_val = [dp_bertrand.BR(p1) for p1 in p_val]
 
             #Initializing our figure and axis
             fig = plt.figure(dpi=100)
