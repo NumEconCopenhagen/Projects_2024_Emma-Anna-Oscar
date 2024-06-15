@@ -185,7 +185,7 @@ class BertrandDuopoly:
         return p_eval
 
     def nash_equilibrium(self):
-        #This function uses a root finding algorithm to find the value of p (p1,p2) that makes p_eval equal to zero. 
+        '''This function uses a root finding algorithm to find the value of p (p1,p2) that makes p_eval equal to zero.''' 
         #When p_eval is zero, both firms are best-responding to the other firm's price. This is our Nash Equilibrium.
         #We start with an initial guess of [0,0].
         p_init = np.array([0, 0])
@@ -196,8 +196,8 @@ class BertrandDuopoly:
         return sol
 
     def ne_plot(self):
-        #The ne_plot function is a method that allows us to create an interactive plot the best response functions and 
-        #the Nash Equilibrium for different values of a, b and c.
+        '''The ne_plot function is a method that allows us to create an interactive plot the best response functions and 
+        the Nash Equilibrium for different values of a, b and c.'''
         #First we use the @interact decorator to create sliders for the three parameters. It is important that a starts 
         #where c ends, so that a ≥ c always holds and we are not able to get negative prices.
         @interact(a = (20,50,1), b = (0.1,1,0.1), c = (0,20,1))
@@ -235,16 +235,18 @@ class Oligopoly:
     """This class shows the analytical solution to the Bertrand oligopoly for N firms"""
     def __init__(self,c):
         par = self.par = SimpleNamespace()
-        # We only wish to analyise what happens for given values of c. We therefor keep a and b constant at a=20 and b=2.
+        # We only wish to analyise what happens for given values of c. We therefore keep a and b constant at a=20 and b=2.
         par.c = c
     
     def nash_price_bertrand(self):
+        '''This method calculates the Nash equilibrium price for the Bertrand oligopoly.'''
         par = self.par
         # We know the price will be set equal to marginal cost, ergo:
         p = par.c
         return p
     
     def nash_profit_bertrand(self):
+        '''This method calculates the Nash equilibrium profit for the Bertrand oligopoly.'''
         par = self.par
         # The profts of all firms will be equal to zero, no matter how many firms are present. 
         # We will use this as what the Cournot model converges towards, meaning this method essentially allows for plotting a straight line = 0 for n firms.
@@ -257,6 +259,7 @@ class Oligopoly:
         return profits
     
     def nash_profit_cournot(self):
+        '''This method calculates the Nash equilibrium profit for the Cournot oligopoly.'''
         # We would like to analysie the convergence of a Cournot Oligopoly towards complete compettion, ergo profit equal to zero.
         # This method calculates the NE of the Cournot model for a given value of c and n firms. 
         par = self.par
@@ -268,6 +271,7 @@ class Oligopoly:
         return profits
 
     def plot_convergence(self):
+        '''This method plots the convergence of the Cournot and Bertrand oligopoly towards zero-profits as the number of firms increases.'''
         # Calling the methods above for given values of c (1, 5, 10, 15) to analyse their respective convergence. 
         oligopoly1 = Oligopoly(1)
         oligopoly2 = Oligopoly(5)
