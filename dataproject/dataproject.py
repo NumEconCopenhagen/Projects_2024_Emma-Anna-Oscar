@@ -38,7 +38,7 @@ def clean_json_data():
     # All our observations are written as Danish 1000, e.g. 2.184 which is supposed to be 2184 and not decimals. 
     # The '.' means we can't convert the numbers directly to integers so we remove this and then convert to intergers.
     inter_empl = string_empl.str.replace('.', '').astype(int)
-    print(f'The observations are now of type: {type(float_empl[0])} and the first observation is: {float_empl[0]}')
+    print(f'The observations are now of type: {type(inter_empl[0])} and the first observation is: {inter_empl[0]}')
     
     # Lastly, we replace the string format of the original series and replace it with the new integer series:
     int_lb_copy['int_empl'] = inter_empl
