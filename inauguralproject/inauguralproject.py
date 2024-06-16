@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import numpy as np
 from scipy import optimize
+from scipy.optimize import fsolve
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -177,12 +178,54 @@ class ExchangeEconomyClass:
             x1A - 1,
             x2A - 1]
 
-    def market_equilibrium_allocation8(self):
-        x0 = [0.5, 0.5]
-        constraints = {'type': 'ineq', 'fun': self.constraint_C}
-        result = optimize.minimize(lambda x: -self.utility_A(x[0], x[1]), x0, constraints=constraints)
-        x1, x2 = result.x
-        return x1, x2
+    def CreateEndowments(self, n=50):
+        #Creating random endowments for A
+        return np.random.uniform(0,1,(n,2))
+    
+    def equilibrium_price(self, wA):
+        #Finding equlibrium price for given endowment
+        self.par.w1a, self.par.w2a = wA
+        p1_optimal = fsolve(lambda p1: self.check_market_clearing(p1)[0], 1)[0]
+        return p1_optimal
+    
+    def OptimalAllocation(self, endowments):
+        allocations = []
+        for wA in endowments:
+            p1_optimal = self.equilibrium_price(wA)
+            x1A, x2A = self.demand_A(p1_optimal)
+            allocations.append((wA, (x1A, x2A)))
+        return allocations 
+     
+    def W_edgeworthbox(self, endowments, allocations):
+          fig = plt.figure(frameon=False, figsize=(6, 6), dpi=100)
+          ax_A = fig.add_subplot(1, 1, 1)
+
+          ax_A.set_xlabel("$x_1^A$")
+          ax_A.set_ylabel("$x_2^A$")
+
+          temp = ax_A.twinx()
+          temp.set_ylabel("$x_2^B$")
+          ax_B = temp.twiny()
+          ax_B.set_xlabel("$x_1^B$")
+          ax_B.invert_xaxis()
+          ax_B.invert_yaxis()
+        
+          #plotting the pairs
+          equilibrium_plots = np.array([alloc[1] for alloc in allocations]).T
+          ax_A.scatter(equilibrium_plots[0], equilibrium_plots[1], marker='o', color='orange')
+        
+          #limits      
+          ax_A.plot([0, 1], [0, 0], 1w=2, color='black')
+          ax_A.plot([0, 1], [1, 1], 1w=2, color='black')
+          ax_A.plot([0, 0], [0, 1], 1w=2, color='black')
+          ax_A.plot([1, 1], [0, 1], 1w=2, color='black')
+
+          ax_A.set_xlim([-0.1, 1.1])
+          ax_A.set_ylim([-0.1, 1.1])
+          ax_B.set_xlim([1.1, -0.1])
+          ax_B.set_ylim([1.1, -0.1])
+
+          plt.show()
 
     
 
