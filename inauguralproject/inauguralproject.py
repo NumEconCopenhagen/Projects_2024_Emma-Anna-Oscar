@@ -110,13 +110,11 @@ class ExchangeEconomyClass:
             # We find the demand of agent B for the prices we loop over
             x1B, x2B = self.demand_B(p1)
 
-            # We define the current utility for agent A by inputting the demand
-            # for A when B's demand depends on the prices we loop over
+            # We define the current utility for agent A by inputting the demand for A when B's demand depends on the prices we loop over
             utility_now = self.utility_A(1-x1B, 1-x2B)
 
-            # We create an if-statement that updates the optimal whenever it is greater
-            # than the previous optimal utility. Furthermore, we update the optimal price,
-            # the optimal quantities for A and the corresponding quantities for B.
+            # We create an if-statement that updates the optimal whenever it is greater than the previous optimal utility. 
+            # Furthermore, we update the optimal price, the optimal quantities for A and the corresponding quantities for B.
             if utility_now > utility_best:
                 utility_best = utility_now
                 p1_best = p1
@@ -142,11 +140,53 @@ class ExchangeEconomyClass:
 
         return result.x[0]
 
-    def market_maker(self,p1):
-        '''objective function to use for question 5'''
+    def market_maker_1(self):
+        '''objective function to use for question 5.1'''
         par = self.par
-        x1A,x2A = self.demand_A(p1)
-        return -self.utility_A(x1A,x2A)
+        max_utility = -np.inf # initial guess
+
+        # We use the values from model.par - this will make our code mode robust
+        initial_utilityB = self.utility_B(1-par.w1A,1-par.w2A)
+        initial_utilityA = self.utility_A(par.w1A,par.w2A)
+
+        print(f'Consumer As initial endowment was (x1A,x2A) = (0.8,0.3) and her utility was {initial_utilityA:.3f}')
+        print(f'Consumer Bs initial endowment was (x1B,x2B) = (0.2,0.7) and her utility was {initial_utilityB:.3f}')
+
+        N = 100
+        allocationA = (None,None) # what consumer A has, initial guess of our loop
+        # Creating vectors of possible x1A and x2A values
+        x1A_vec = np.linspace(0,1,N)
+        x2A_vec = np.linspace(0,1,N)
+
+        for x1A in x1A_vec:
+            for x2A in x2A_vec:
+                utility_nowA = self.utility_A(x1A,x2A)
+                utility_nowB = self.utility_B(1-x1A,1-x2A)
+            # We make sure that consumer B is not worth of with the second 'and' statement
+            if utility_nowA > max_utility and utility_nowB >= initial_utilityB:
+                # If we have found a better allocation for consumer A, we update the maximum utility and the allocation.
+                max_utility = utility_nowA
+                allocationA = (x1A,x2A)
+                return allocationA
+            
+        return allocationA
+
+    def market_maker_2(self):
+        par = self.par
+        initial_utilityB = self.utility_B(1-par.w1A,1-par.w2A)
+        initial_utilityA = self.utility_A(par.w1A,par.w2A)
+
+        print(f'Consumer As initial endowment was (x1A,x2A) = (0.8,0.3) and her utility was {initial_utilityA:.3f}')
+        print(f'Consumer Bs initial endowment was (x1B,x2B) = (0.2,0.7) and her utility was {initial_utilityB:.3f}')
+
+        objective = lambda x: -self.utility_A(x[0],x[1])
+        bounds = [(0,1),(0,1)]
+        constraints = {'type':'ineq', 'fun':lambda x: self.utility_B(1-x[0],1-x[1]) - initial_utilityB}
+        initial_guess = [0.0000001,0.0000001]
+
+        sol = optimize.minimize(objective,initial_guess,method='SLSQP',bounds=bounds,constraints=constraints)
+        
+        return sol.x
 
     
     def utilitarian_planner(self):
@@ -215,10 +255,10 @@ class ExchangeEconomyClass:
           ax_A.scatter(equilibrium_plots[0], equilibrium_plots[1], marker='o', color='orange')
         
           #limits      
-          ax_A.plot([0, 1], [0, 0], 1w=2, color='black')
-          ax_A.plot([0, 1], [1, 1], 1w=2, color='black')
-          ax_A.plot([0, 0], [0, 1], 1w=2, color='black')
-          ax_A.plot([1, 1], [0, 1], 1w=2, color='black')
+          ax_A.plot([0, 1], [0, 0], lw=2, color='black')
+          ax_A.plot([0, 1], [1, 1], lw=2, color='black')
+          ax_A.plot([0, 0], [0, 1], lw=2, color='black')
+          ax_A.plot([1, 1], [0, 1], lw=2, color='black')
 
           ax_A.set_xlim([-0.1, 1.1])
           ax_A.set_ylim([-0.1, 1.1])
