@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import numpy as np
 from scipy import optimize
-from scipy.optimize import fsolve
+from scipy.optimize import minimize
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -218,54 +218,56 @@ class ExchangeEconomyClass:
             x1A - 1,
             x2A - 1]
 
-    def CreateEndowments(self, n=50):
-        #Creating random endowments for A
-        return np.random.uniform(0,1,(n,2))
-    
-    def equilibrium_price(self, wA):
-        #Finding equlibrium price for given endowment
-        self.par.w1a, self.par.w2a = wA
-        p1_optimal = fsolve(lambda p1: self.check_market_clearing(p1)[0], 1)[0]
-        return p1_optimal
-    
-    def OptimalAllocation(self, endowments):
-        allocations = []
-        for wA in endowments:
-            p1_optimal = self.equilibrium_price(wA)
-            x1A, x2A = self.demand_A(p1_optimal)
-            allocations.append((wA, (x1A, x2A)))
-        return allocations 
-     
-    def W_edgeworthbox(self, endowments, allocations):
-          fig = plt.figure(frameon=False, figsize=(6, 6), dpi=100)
-          ax_A = fig.add_subplot(1, 1, 1)
+    def equilibrium_price(self, do_print=True):
+        '''Finds the equilibrium price and provides equilibrium erros.'''
+        obj = lambda p1: self.check_market_clearing(p1)[0]
+        res = optimize.root_scalar(obj, bracket=(1e-8, 10), method='bisect')
+        x = res.root
+        error_equilibrium = self.check_market_clearing(res.root)
+        if do_print:
+            print(f'Error in equilibrium {error_equilibrium} with equilibrium price p1 = {x:.6f}')
+        return x
 
-          ax_A.set_xlabel("$x_1^A$")
-          ax_A.set_ylabel("$x_2^A$")
+    def set_endowments(self, num_ran_end, seed=1):
+        '''Random endowments generated'''
+        np.random.seed(seed)
+        par = self.par
+        x1A, x2A = np.zeros(num_ran_end), np.zeros(num_ran_end)
+        for n in range(num_ran_end):
+            rW = np.random.uniform(0, 1, size=2)
+            par.w1A, par.w2A = rW
+            BestPrice = self.equilibrium_price(do_print=False)
+            x1A[n], x2A[n] = self.demand_A(BestPrice)
+        return x1A, x2A
 
-          temp = ax_A.twinx()
-          temp.set_ylabel("$x_2^B$")
-          ax_B = temp.twiny()
-          ax_B.set_xlabel("$x_1^B$")
-          ax_B.invert_xaxis()
-          ax_B.invert_yaxis()
-        
-          #plotting the pairs
-          equilibrium_plots = np.array([alloc[1] for alloc in allocations]).T
-          ax_A.scatter(equilibrium_plots[0], equilibrium_plots[1], marker='o', color='orange')
-        
-          #limits      
-          ax_A.plot([0, 1], [0, 0], lw=2, color='black')
-          ax_A.plot([0, 1], [1, 1], lw=2, color='black')
-          ax_A.plot([0, 0], [0, 1], lw=2, color='black')
-          ax_A.plot([1, 1], [0, 1], lw=2, color='black')
+    def Edgeworthbox_eq(self, x1A, x2A, w1tot, w2tot, w1A, w2A):
+        '''equilibrium allocations - Edgeworth box'''
+        fig = plt.figure(frameon=True, figsize=(6, 6), dpi=100)
+        ax_A = fig.add_subplot(1, 1, 1)
 
-          ax_A.set_xlim([-0.1, 1.1])
-          ax_A.set_ylim([-0.1, 1.1])
-          ax_B.set_xlim([1.1, -0.1])
-          ax_B.set_ylim([1.1, -0.1])
+        ax_A.set_xlabel("$x_1^A$")
+        ax_A.set_ylabel("$x_2^A$")
 
-          plt.show()
+        temp = ax_A.twinx()
+        temp.set_ylabel("$x_2^B$")
+        ax_B = temp.twiny()
+        ax_B.set_xlabel("$x_1^B$")
+        ax_B.invert_xaxis()
+        ax_B.invert_yaxis()
 
-    
+        ax_A.scatter(x1A, x2A, marker='o', color='purple', label='Equilibrium allocations')
+
+        ax_A.plot([0, w1tot], [0, 0], lw=2, color='black')
+        ax_A.plot([0, w1tot], [w2tot, w2tot], lw=2, color='black')
+        ax_A.plot([0, 0], [0, w2tot], lw=2, color='black')
+        ax_A.plot([w1tot, w1tot], [0, w2tot], lw=2, color='black')
+
+        ax_A.set_xlim([-0.1, w1tot + 0.1])
+        ax_A.set_ylim([-0.1, w2tot + 0.1])
+        ax_B.set_xlim([w1tot + 0.1, -0.1])
+        ax_B.set_ylim([w2tot + 0.1, -0.1])
+
+        ax_A.legend(frameon=True, loc='lower right', fontsize=10)
+        plt.title('Edgeworth Box')
+        plt.show()
 
