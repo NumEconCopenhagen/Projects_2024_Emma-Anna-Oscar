@@ -255,7 +255,7 @@ class ExchangeEconomyClass:
         ax_B.invert_xaxis()
         ax_B.invert_yaxis()
 
-        ax_A.scatter(x1A, x2A, marker='o', color='purple', label='Market equilibrium')
+        ax_A.scatter(x1A, x2A, marker='o', color='purple', label='Equilibrium allocations')
 
         ax_A.plot([0, w1tot], [0, 0], lw=2, color='black')
         ax_A.plot([0, w1tot], [w2tot, w2tot], lw=2, color='black')
