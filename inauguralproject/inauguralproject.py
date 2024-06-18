@@ -143,7 +143,7 @@ class ExchangeEconomyClass:
     def market_maker_1(self):
         '''objective function to use for question 5.1'''
         par = self.par
-        max_utility = -np.inf # initial guess
+        max_utility = -np.inf # initial guess of utility
 
         # We use the values from model.par - this will make our code mode robust
         initial_utilityB = self.utility_B(1-par.w1A,1-par.w2A)
@@ -153,7 +153,7 @@ class ExchangeEconomyClass:
         print(f'Consumer Bs initial endowment was (x1B,x2B) = (0.2,0.7) and her utility was {initial_utilityB:.3f}')
 
         N = 100
-        allocationA = (None,None) # what consumer A has, initial guess of our loop
+        allocationA = (0.5,0.5) # what consumer A has, initial guess of our loop
         # Creating vectors of possible x1A and x2A values
         x1A_vec = np.linspace(0,1,N)
         x2A_vec = np.linspace(0,1,N)
@@ -167,7 +167,6 @@ class ExchangeEconomyClass:
                 # If we have found a better allocation for consumer A, we update the maximum utility and the allocation.
                 max_utility = utility_nowA
                 allocationA = (x1A,x2A)
-                return allocationA
             
         return allocationA
 
