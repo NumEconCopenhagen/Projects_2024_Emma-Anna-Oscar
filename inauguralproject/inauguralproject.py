@@ -153,18 +153,19 @@ class ExchangeEconomyClass:
         print(f'Consumer Bs initial endowment was (x1B,x2B) = (0.2,0.7) and her utility was {initial_utilityB:.3f}')
 
         N = 100
-        allocationA = (0.5,0.5) # what consumer A has, initial guess of our loop
+        allocationA = (None,None) # initial allocation, first guess of our loop
         # Creating vectors of possible x1A and x2A values
         x1A_vec = np.linspace(0,1,N)
         x2A_vec = np.linspace(0,1,N)
 
+        # Now we loop over the possible values of x1A and x2A
         for x1A in x1A_vec:
             for x2A in x2A_vec:
                 utility_nowA = self.utility_A(x1A,x2A)
                 utility_nowB = self.utility_B(1-x1A,1-x2A)
-            # We make sure that consumer B is not worth of with the second 'and' statement
+            # If we find a better allocation for consumer A, we update the maximum utility and the allocation.
+            # We make sure that consumer B is not worse off with the second 'and' statement
             if utility_nowA > max_utility and utility_nowB >= initial_utilityB:
-                # If we have found a better allocation for consumer A, we update the maximum utility and the allocation.
                 max_utility = utility_nowA
                 allocationA = (x1A,x2A)
             
