@@ -153,10 +153,10 @@ class ExchangeEconomyClass:
         print(f'Consumer Bs initial endowment was (x1B,x2B) = (0.2,0.7) and her utility was {initial_utilityB:.3f}')
 
         N = 100
-        allocationA = (None,None) # initial allocation, first guess of our loop
         # Creating vectors of possible x1A and x2A values
         x1A_vec = np.linspace(0,1,N)
         x2A_vec = np.linspace(0,1,N)
+        allocationA = (0,0)
 
         # Now we loop over the possible values of x1A and x2A
         for x1A in x1A_vec:
@@ -165,9 +165,9 @@ class ExchangeEconomyClass:
                 utility_nowB = self.utility_B(1-x1A,1-x2A)
             # If we find a better allocation for consumer A, we update the maximum utility and the allocation.
             # We make sure that consumer B is not worse off with the second 'and' statement
-            if utility_nowA > max_utility and utility_nowB >= initial_utilityB:
-                max_utility = utility_nowA
-                allocationA = (x1A,x2A)
+                if utility_nowA > max_utility and utility_nowB >= initial_utilityB:
+                    max_utility = utility_nowA
+                    allocationA = (x1A,x2A)
             
         return allocationA
 
@@ -263,7 +263,7 @@ class ExchangeEconomyClass:
         ax_B.invert_xaxis()
         ax_B.invert_yaxis()
 
-        ax_A.scatter(x1A, x2A, marker='o', color='purple', label='Equilibrium allocations')
+        ax_A.scatter(x1A, x2A, marker='o', color='mediumpurple', label='Equilibrium allocations')
 
         ax_A.plot([0, w1tot], [0, 0], lw=2, color='black')
         ax_A.plot([0, w1tot], [w2tot, w2tot], lw=2, color='black')
@@ -275,7 +275,7 @@ class ExchangeEconomyClass:
         ax_B.set_xlim([w1tot + 0.1, -0.1])
         ax_B.set_ylim([w2tot + 0.1, -0.1])
 
-        ax_A.legend(frameon=True, loc='lower right', fontsize=10)
+        ax_A.legend(frameon=True, loc='upper right', bbox_to_anchor=(1.6,1.0), fontsize=10)
         plt.title('Edgeworth Box')
         plt.show()
 
