@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import ipywidgets as widgets
-from matplotlib_venn import venn2
 import json
 
 
@@ -14,7 +13,10 @@ int_lb = pd.DataFrame(int_data)
 def clean_json_data(do_print = True):
     ''' Defining a callable function to use for cleaning our JSON data file '''
         
-    # Copying the DataFrame, which we will clean, incase we need the original data.
+    # We start of by creating a copy of the data. While this does require some extra memory, we do so because:
+    # 1) We would like to keep the original data in case something goes wrong or we for whatever reason need the original data.
+    # As we aim at merging the dataset later on, it seems more efficient to have the original data stored, so that we can easily go back in case we run into problems. 
+    # 2) While we could create a new variable, which is equal to the original data, because they share the same memory location, any changes to the new variable would also change the original data.
     int_lb_copy = int_lb.copy()
 
     # As we've only extracted the data from 2014 and after, we do not need to drop any time-dependent variables.
@@ -245,7 +247,7 @@ def dst_empl_merging(employees):
     emplo['time'] = pd.to_datetime(emplo['time'], format='%YM%m')
 
     # Like above, we replace all strings of industry observations with the corresponding industry name from above.
-    emplo['industry'] = emplo['industry'].str.replace('I Accommodation and food service activities','hotels_restaurents')
+    emplo['industry'] = emplo['industry'].str.replace('I Accommodation and food service activities','hotels_restaurants')
     emplo['industry'] = emplo['industry'].str.replace('M Knowledge-based services','research_consultancy')
     emplo['industry'] = emplo['industry'].str.replace('N Travel agent, cleaning, and other operationel services','cleaning_etc')
     emplo['industry'] = emplo['industry'].str.replace('10 Arts, entertainment and recration activities','culture_leisure')
@@ -268,9 +270,20 @@ def checking_data(int_labor,empl_industry):
     diff_d = [d for d in empl_industry.time.unique() if d not in int_labor.time.unique()]
     print(f'dates in employment data, but not in international workers data: {diff_d}')
 
-    diff_i = [i for i in empl_industry.industry.unique() if i not in int_labor.industry.unique()] 
     # doing the same for industries
+    diff_i = [i for i in empl_industry.industry.unique() if i not in int_labor.industry.unique()] 
     print(f'industries in empl_industry data, but not in international workers data: {diff_i}')
+
+    # Defining if statements to asses if the datasets are ready for merging
+    if len(diff_d) == 0 and len(diff_i) == 0:
+        print('The datasets contain the same time and industry variables, and we can move forward with the merge.')
+    elif len(diff_d) > 0 or len(diff_i) > 0:
+        print('WARNING: there are missing values in the international workers dataset')
+    elif len(diff_i) < 0 or len(diff_d) < 0:
+        print('WARNING: there are missing industry values in the employment dataset')
+    else:
+        print('Unexpected error, please check the data again')
+
     return
 
 def merging_datasets(int_labor,empl_industry):
@@ -284,3 +297,4 @@ def merging_datasets(int_labor,empl_industry):
     display(inner.head(5))
     print(f'Industries in the merged dataset: {inner.industry.unique()}, total = {len(inner.industry.unique())}')
     return inner
+
