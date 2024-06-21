@@ -116,7 +116,7 @@ class CournotDuopoly:
             ax.plot(q_val, br1_val, label='BR for firm 1', color='grey', linestyle='--')
             ax.plot(br2_val, q_val, label='BR for firm 2', color='grey')
             #We plot the Nash Equilibrium as a blue dot and annotate the point with the q1- and q2-values.
-            ax.plot(q_ne[1], q_ne[0], 'bo')
+            ax.plot(q_ne[1], q_ne[0], 'o', color='mediumpurple')
             ax.annotate(f'NE: ({q_ne[0]:.1f}, {q_ne[1]:.1f})', xy=q_ne, xytext=(10,10), textcoords='offset points',  
                         arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=.2'))
             
