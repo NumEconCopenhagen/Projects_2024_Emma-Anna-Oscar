@@ -233,7 +233,7 @@ class ExchangeEconomyClass:
 
     def set_endowments(self, num_ran_end):
         '''Random endowments generated'''
-        #set random seed
+        #Set random seed
         np.random.seed(3000)
         par = self.par
         #Generating endowment
