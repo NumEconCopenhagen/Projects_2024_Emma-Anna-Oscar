@@ -169,7 +169,6 @@ class BertrandDuopoly:
         #result.x provides the optimal solution for firm i.
         return result.x[0]
 
-
     def p_eval(self,p):
         '''This function allows us to use a root finding algorithm to find the Nash Equilibrium.'''
         #It operates on a vector, p, with two elements, representing the prices set by both firms.
