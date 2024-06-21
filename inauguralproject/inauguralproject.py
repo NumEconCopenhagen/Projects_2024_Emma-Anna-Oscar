@@ -218,25 +218,33 @@ class ExchangeEconomyClass:
             x1A - 1,
             x2A - 1]
 
-    def equilibrium_price(self, do_print=True):
+    def equilibrium_price(self, d_display=True):
         '''Finds the equilibrium price and provides equilibrium erros.'''
+        #Defining the object function
         obj = lambda p1: self.check_market_clearing(p1)[0]
         res = optimize.root_scalar(obj, bracket=(1e-8, 10), method='bisect')
         x = res.root
+        #Checking market clearing errors at eq
         error_equilibrium = self.check_market_clearing(res.root)
-        if do_print:
-            print(f'Error in equilibrium {error_equilibrium} with equilibrium price p1 = {x:.6f}')
+        if d_display:
+            eqerr = f'The equilibrium error is {error_equilibrium}, with the equilibrium price of p1 being {x:.6f}'
+            print(eqerr)
         return x
 
-    def set_endowments(self, num_ran_end, seed=1):
+    def set_endowments(self, num_ran_end):
         '''Random endowments generated'''
-        np.random.seed(seed)
+        #Set random seed
+        np.random.seed(3000)
         par = self.par
+        #Generating endowment
         x1A, x2A = np.zeros(num_ran_end), np.zeros(num_ran_end)
         for n in range(num_ran_end):
+            #creating a random endownment rW
             rW = np.random.uniform(0, 1, size=2)
             par.w1A, par.w2A = rW
-            BestPrice = self.equilibrium_price(do_print=False)
+            #Finding eq price
+            BestPrice = self.equilibrium_price(d_display=False)
+            #Finding demand at the eq price
             x1A[n], x2A[n] = self.demand_A(BestPrice)
         return x1A, x2A
 
@@ -244,7 +252,7 @@ class ExchangeEconomyClass:
         '''equilibrium allocations - Edgeworth box'''
         fig = plt.figure(frameon=True, figsize=(6, 6), dpi=100)
         ax_A = fig.add_subplot(1, 1, 1)
-
+        #Rest of the coding is setting up the Edgeworth Box
         ax_A.set_xlabel("$x_1^A$")
         ax_A.set_ylabel("$x_2^A$")
 
