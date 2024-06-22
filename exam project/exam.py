@@ -117,6 +117,7 @@ class ProductionEconomy:
         good_market2 = c2 - y2
         return good_market2
 
+
 class CareerChoice:
     def __init__(self, seed=None):
         '''Initializes the parameters of the model'''
@@ -209,21 +210,167 @@ class CareerChoice:
             RV.append(career[i] + noiseterm[i])
         return career, EV, RV
     
-    def sort(self):
+    def simulate(self):
         par = self.par
-        career, EV, RV = self.career()
 
-        careerdict = {}
-        for i in range(1,par.N+1):
-            careerdict[i] = career[i-1]
+        careerdict = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+        EVdict = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+        RVdict = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
 
-        EVdict = {}
-        for i in range(1,par.N+1):
-            EVdict[i] = EV[i-1]
-        
-        RVdict = {}
-        for i in range(1,par.N+1):
-            RVdict[i] = RV[i-1]
-        
+        for i in range(0,par.N):
+            n = 0
+            while n <= par.K:
+                career, EV, RV = self.career()
+                careerdict[i+1].append(career[i])
+                EVdict[i+1].append(EV[i])
+                RVdict[i+1].append(RV[i])
+                n += 1
+
         return careerdict, EVdict, RVdict
+    
 
+def count(list):
+    count1 = 0
+    count2 = 0
+    count3 = 0
+    for element in list:
+        if element == 1:
+            count1 += 1
+        elif element == 2:
+            count2 += 1
+        else:
+            count3 += 1
+
+    v1 = count1/len(list)
+    v2 = count2/len(list)
+    v3 = count3/len(list)
+    
+    h = [v1, v2, v3]
+
+    return h
+
+def plot_career(C1,C2,C3,C4,C5,C6,C7,C8,C9,C10):
+        '''This function plots the shares of the different career choices for i = 1,2,...,10'''
+
+        # plotting the 10 graphs for the shares of the different career choices
+        fig, axs = plt.subplots(nrows=5, ncols=2, figsize=(12, 20), dpi=100, constrained_layout=True)
+        fig.suptitle('Figure 2.1: Distribution of career choices for i = 1,...,10', fontsize=16)
+        labels = ['v1', 'v2' , 'v3']
+
+        # then, creating the individual plots for each i
+        # for i = 1:
+        axs[0][0].set_ylabel('percentage')
+        axs[0][0].bar(labels, C1, color='mediumpurple')
+        axs[0][0].set_title('i = 1')
+        axs[0][0].set_ylim(0,1)
+
+        # for i = 2:
+        axs[0][1].set_ylabel('percentage')
+        axs[0][1].bar(labels,C2, color='mediumpurple')
+        axs[0][1].set_title('i = 2')
+        axs[0][1].set_ylim(0,1)
+
+        # for i = 3:
+        axs[1][0].set_ylabel('percentage')
+        axs[1][0].bar(labels,C3, color='mediumpurple')
+        axs[1][0].set_title('i = 3')
+        axs[1][0].set_ylim(0,1)
+
+        # for i = 4:
+        axs[1][1].set_ylabel('percentage')
+        axs[1][1].bar(labels,C4, color='mediumpurple')
+        axs[1][1].set_title('i = 4')
+        axs[1][1].set_ylim(0,1)
+
+        # for i = 5:
+        axs[2][0].set_ylabel('percentage')
+        axs[2][0].bar(labels,C5, color='mediumpurple')
+        axs[2][0].set_title('i = 5')
+        axs[2][0].set_ylim(0,1)
+        
+        # for i = 6:
+        axs[2][1].set_ylabel('percentage')
+        axs[2][1].bar(labels,C6, color='mediumpurple')
+        axs[2][1].set_title('i = 6')
+        axs[2][1].set_ylim(0,1)
+
+        # for i = 7:
+        axs[3][0].set_ylabel('percentage')
+        axs[3][0].bar(labels,C7, color='mediumpurple')
+        axs[3][0].set_title('i = 7')
+        axs[3][0].set_ylim(0,1)
+        
+        # for i = 8:
+        axs[3][1].set_ylabel('percentage')
+        axs[3][1].bar(labels,C8, color='mediumpurple')
+        axs[3][1].set_title('i = 8')
+        axs[3][1].set_ylim(0,1)
+
+        # for i = 9:
+        axs[4][0].set_ylabel('percentage')
+        axs[4][0].bar(labels,C9, color='mediumpurple')
+        axs[4][0].set_title('i = 9')
+        axs[4][0].set_ylim(0,1)
+
+        # for i = 10:
+        axs[4][1].set_ylabel('percentage')
+        axs[4][1].bar(labels,C10, color='mediumpurple')
+        axs[4][1].set_title('i = 10')
+        axs[4][1].set_ylim(0,1)
+
+        plt.show()
+
+def plot_exp_utility(list):
+    plt.figure(figsize=(8, 6), dpi=100)
+    ax = plt.subplot(1,1,1)
+    ax.set_title('Figure 2.2: Expected utility of career choices')
+    labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
+    ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
+    ax.set_ylim(2.5,4.0)
+    ax.set_xlabel('Type of graduate')
+    ax.set_ylabel('Expected utility')
+    plt.show()
+
+def plot_realized_utility(list):
+    plt.figure(figsize=(8, 6), dpi=100)
+    ax = plt.subplot(1,1,1)
+    ax.set_title('Figure 2.3: Realized utility of career choices')
+    labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
+    ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
+    ax.set_ylim(2.0,3.0)
+    ax.set_xlabel('Type of graduate')
+    ax.set_ylabel('Realized utility')
+    plt.show()
