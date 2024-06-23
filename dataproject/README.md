@@ -19,4 +19,4 @@ International Labor.json (*source: jobindsats.dk*)
 ``pip install git+https://github.com/alemartinello/dstapi``
 ``pip install pandas-datareader``
 
-In this exam, we have used AI as an additional tool, co-pilot and ChatGPT. We have mainly used it as inspiration when we have been a little uncertain about our own approach.
+In this project, we have used AI as an additional tool, co-pilot and ChatGPT. We have used it as an inspiration source to come up with approached to solve problems and ways to create code with. We have mainly done this when being a little unsure about our own approach.

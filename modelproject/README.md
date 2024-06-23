@@ -7,4 +7,4 @@ The results of the project can be seen from running [modelproject.ipynb](modelpr
 **Dependencies:** Apart from a standard Anaconda Python 3 installation, the project requires the following installation:
 ''pip install ipywidgets''
 
-In this exam, we have used AI as an additional tool, co-pilot and ChatGPT. We have mainly used it as inspiration when we have been a little uncertain about our own approach.
+In this project, we have used AI as an additional tool, co-pilot and ChatGPT. We have used it as an inspiration source to come up with approached to solve problems and ways to create code with. We have mainly done this when being a little unsure about our own approach.

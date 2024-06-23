@@ -702,6 +702,7 @@ def bary_in_tri(r_1, r_2, r_3):
 
 def f(x1, x2):
     return x1 + x2
+#a part of the code above from question 2 in problem 3 has been extracted from ChatGPT, after which we made the final equations and calculation in our own way.
 
 class Barycentric():
     #Defining a function for the barycentric coordinates:
