@@ -632,3 +632,35 @@ def plot_realized_utility(list, title):
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Realized utility')
     plt.show()    
+
+
+#Defining a function for the barycentric coordinates:
+def barycentric_c(A, B, C, y):
+    #First, we define the denominator to make the calculations more simple for r_1 and r_2
+    denominator = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1])
+    r_1 = ((B[1] - C[1]) * (y[0] - C[0]) + (C[0] - B[0]) * (y[1] - C[1])) / denominator
+    r_2 = ((C[1] - A[1]) * (y[0] - C[0]) + (A[0] - C[0]) * (y[1] - C[1])) / denominator
+    r_3 = 1 - r_1 - r_2
+    return r_1, r_2, r_3
+
+#Next step is to find out if the Bary coordinates are within the triangles
+def bary_in_tri(r_1, r_2, r_3):
+    return (0<= r_1 <= 1) and (0<= r_2 <= 1) and (0<= r_3 <= 1)
+
+def f(x1, x2):
+    return x1 + x2
+
+def check_coor_tri(A, B, C, D, y):
+    #Including the two triangles in the coordinates
+    r_1_ABC, r_2_ABC, r_3_ABC = barycentric_c(A, B, C, y)
+    r_1_CDA, r_2_CDA, r_3_CDA = barycentric_c(C, D, A, y)
+
+    #Finally confirming if y is in the triangles
+    if bary_in_tri(r_1_CDA, r_2_CDA, r_3_CDA):
+        f_y = r_1_CDA * f(C[0], C[1]) + r_2_CDA * f(D[0], D[1]) + r_3_CDA * f(A[0], A[1])
+        return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, f"Y is inside CDA. f(y) = {f_y}"
+    elif bary_in_tri(r_1_ABC, r_2_ABC, r_3_ABC):
+        f_y = r_1_ABC * f(A[0], A[1]) + r_2_ABC * f(B[0], B[1]) + r_3_ABC * f(C[0], C[1])
+        return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, f"y is inside ABC. f(y) = {f_y}"
+    else:
+        return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, "y isn't in the triangles. Undefined f(y)"
