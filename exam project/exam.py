@@ -172,7 +172,24 @@ class CareerChoice:
 
         if seed is not None:
             np.random.seed(seed)
-        self.seed = seed        
+        self.seed = seed      
+
+    def epsdraw(self, size):
+        '''Draws epsilon from a normal distribution with mean 0 and standard deviation sigma.
+        Changes seed based on input.'''
+        par = self.par
+        eps= np.random.normal(loc=0, scale=par.sigma, size=size)
+        return eps
+  
+
+    def utility(self):
+        '''Calculates the expected utility of each career choice given the seed for the normal
+        distribution for each career, v_j.'''
+        par = self.par
+        utility = []
+        for v in par.v:
+            utility.append(v + np.mean(self.epsdraw(par.K)))
+        return utility
 
     def v1(self):
         '''Calculates the expected utility of career choice v1 for each type of graduate'''
@@ -645,7 +662,7 @@ def plot_exp_utility(list,title):
     ax = plt.subplot(1,1,1)
     ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
-    ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
+    ax.bar(labels, list, color='mediumpurple')
     ax.set_ylim(2.5,4.0)
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Expected utility')
@@ -658,11 +675,11 @@ def plot_realized_utility(list, title):
     ax = plt.subplot(1,1,1)
     ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
-    ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
+    ax.bar(labels, list, color='mediumpurple')
     ax.set_ylim(2.0,3.0)
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Realized utility')
-    plt.show()    
+    plt.show()
 
 def findABCD(rng,X,y):
     A = min((d for d in X if d[0] > y[0] and d[1] > y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
