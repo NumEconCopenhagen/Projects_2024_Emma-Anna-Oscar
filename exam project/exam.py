@@ -228,6 +228,117 @@ class ProductionEconomy2:
         y2 = self.opt_output2(p2,w)
         good_market2 = c2 - y2
         return good_market2
+    
+class ProductionEconomy3:
+
+    def __init__(self):
+        par = self.par = SimpleNamespace()
+
+        # firms
+        par.A = 1.0
+        par.gamma = 0.5
+
+        # households
+        par.alpha = 0.3
+        par.nu = 1.0
+        par.epsilon = 2.0
+
+        # government
+        par.tau = 0.0
+        par.T = 0.0
+
+        # Question 3
+        par.kappa = 0.1
+
+    def imp_profit1(self, p1, w):
+        par = self.par
+        profits1 = ((1 - par.gamma) * w / par.gamma) * (p1 * par.A * par.gamma / w) ** (1 / (1 - par.gamma))
+        return profits1
+
+    def firm1(self, p1, w):
+        par = self.par
+        l1 = (p1 * par.A * par.gamma / w) ** (1 / (1 - par.gamma))
+        y1 = par.A * (l1 ** par.gamma)
+        return l1, y1
+    
+    def imp_profit2(self, p2, w):
+        par = self.par
+        profits2 = ((1 - par.gamma) * w / par.gamma) * (p2 * par.A * par.gamma / w) ** (1 / (1 - par.gamma))
+        return profits2
+    
+    def firm2(self, p2, w):
+        par = self.par
+        l2 = (p2 * par.A * par.gamma / w) ** (1 / (1 - par.gamma))
+        y2 = par.A * (l2 ** par.gamma)
+        return l2, y2
+    
+    def consumer_behavior(self, p1, p2, w):
+        par = self.par
+        l1_star, y1_star = self.firm1(p1, w)
+        l2_star, y2_star = self.firm2(p2, w)
+        l_total = l1_star + l2_star
+
+        pi1_star = self.imp_profit1(p1, w)
+        pi2_star = self.imp_profit2(p2, w)
+
+        def utility(l):
+            c1 = par.alpha * (w * l + par.T + pi1_star + pi2_star) / p1
+            c2 = (1 - par.alpha) * (w * l + par.T + pi1_star + pi2_star) / (p2 + par.tau)
+            return np.log(c1 ** par.alpha * c2 ** (1 - par.alpha)) - par.nu * l ** (1 + par.epsilon) / (1 + par.epsilon)
+
+        sol = optimize.minimize(lambda l: -utility(l), x0=[l_total], bounds=[(0, None)], method='SLSQP')
+
+        l_star = sol.x[0]
+        c1_star = par.alpha * (w * l_star + par.T + pi1_star + pi2_star) / p1
+        c2_star = (1 - par.alpha) * (w * l_star + par.T + pi1_star + pi2_star) / (p2 + par.tau)
+
+        return l_star, c1_star, c2_star
+
+    def excess_demand(self, prices, w):
+        p1, p2 = prices
+        l_star, c1_star, c2_star = self.consumer_behavior(p1, p2, w)
+        l1_star, y1_star = self.firm1(p1, w)
+        l2_star, y2_star = self.firm2(p2, w)
+
+        excess_demand_good1 = c1_star - y1_star
+        excess_demand_good2 = c2_star - y2_star
+
+        return [excess_demand_good1, excess_demand_good2]
+
+    def find_equilibrium_prices(self, w):
+        initial_guess = [1.0, 1.0]
+        result = optimize.root(lambda prices: self.excess_demand(prices, w), initial_guess, method='hybr')
+        if result.success:
+            return result.x
+        else:
+            raise ValueError("Equilibrium prices not found")
+
+    def check_market_clearing(self, p1_values, p2_values, w):
+        results = []
+
+        for p1 in p1_values:
+            for p2 in p2_values:
+                try:
+                    l_star, c1_star, c2_star = self.consumer_behavior(p1, p2, w)
+                    l1_star, y1_star = self.firm1(p1, w)
+                    l2_star, y2_star = self.firm2(p2, w)
+
+                    labor_market_clearing = np.isclose(l_star, l1_star + l2_star)
+                    good1_market_clearing = np.isclose(c1_star, y1_star)
+                    good2_market_clearing = np.isclose(c2_star, y2_star)
+
+                    results.append({
+                        'p1': p1,
+                        'p2': p2,
+                        'labor_market_clearing': labor_market_clearing,
+                        'good1_market_clearing': good1_market_clearing,
+                        'good2_market_clearing': good2_market_clearing
+                    })
+                except Exception as e:
+                    print(f"Error for p1={p1}, p2={p2}: {e}")
+                    continue
+
+        return results
 
 
 class CareerChoice:
