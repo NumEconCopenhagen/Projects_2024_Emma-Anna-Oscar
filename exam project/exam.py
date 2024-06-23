@@ -359,12 +359,14 @@ class CareerChoice:
             np.random.seed(seed)
         self.seed = seed        
 
+
     def epsdraw(self, size):
         '''Draws epsilon from a normal distribution with mean 0 and standard deviation sigma.
         Changes seed based on input.'''
         par = self.par
         eps= np.random.normal(loc=0, scale=par.sigma, size=size)
         return eps
+
 
     def utility(self):
         '''Calculates the expected utility of each career choice given the seed for the normal
@@ -375,6 +377,7 @@ class CareerChoice:
             utility.append(v + np.mean(self.epsdraw(par.K)))
         return utility
     
+
     def v1(self):
         par = self.par
         EU = []
@@ -384,6 +387,7 @@ class CareerChoice:
             EU.append(eu)
         return EU
     
+
     def v2(self):
         par = self.par
         EU = []
@@ -393,6 +397,7 @@ class CareerChoice:
             EU.append(eu)
         return EU
     
+
     def v3(self):
         par = self.par
         EU = []
@@ -402,6 +407,7 @@ class CareerChoice:
             EU.append(eu)
         return EU
     
+
     def career(self):
         par = self.par
         EUv1 = self.v1()
@@ -433,6 +439,7 @@ class CareerChoice:
             RV.append(career[i] + noiseterm[i])
         return career, EV, RV
     
+
     def simulate(self):
         par = self.par
 
@@ -485,6 +492,188 @@ class CareerChoice:
         return careerdict, EVdict, RVdict
     
 
+    def career_alt(self, careerdict, RVdict):
+        par = self.par
+
+        switchdict = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        careerdict_alt = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        EVdict_alt = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        RVdict_alt = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        for i in range(0,par.N):  
+            for n in range(0,par.K):
+                EUv1 = self.v1()
+                EUv2 = self.v2()
+                EUv3 = self.v3()
+                if careerdict[i+1][n] == 1:
+                    c = np.max([RVdict[i+1][n],(EUv2[i]-par.c), (EUv3[i]-par.c)])
+                    if c == RVdict[i+1][n]:
+                        careerdict_alt[i+1].append(1)
+                        EVdict_alt[i+1].append(RVdict[i+1][n])
+                        switchdict[i+1].append(0)
+                        RVdict_alt[i+1].append(RVdict[i+1][n])
+                    elif c == (EUv2[i]-par.c):
+                        careerdict_alt[i+1].append(2)
+                        EVdict_alt[i+1].append(EUv2[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(2 - par.c + noiseterm[0])
+                    else: 
+                        careerdict_alt[i+1].append(3)
+                        EVdict_alt[i+1].append(EUv3[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(3 - par.c + noiseterm[0])
+                elif careerdict[i+1][n] == 2:
+                    c = np.max([RVdict[i+1][n],(EUv1[i]-par.c), (EUv3[i]-par.c)])
+                    if c == RVdict[i+1][n]:
+                        careerdict_alt[i+1].append(2)
+                        EVdict_alt[i+1].append(RVdict[i+1][n])
+                        switchdict[i+1].append(0)
+                        RVdict_alt[i+1].append(RVdict[i+1][n])  
+                    elif c == (EUv1[i]-par.c):
+                        careerdict_alt[i+1].append(1)
+                        EVdict_alt[i+1].append(EUv1[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(1 - par.c + noiseterm[0])
+                    else:
+                        careerdict_alt[i+1].append(3)
+                        EVdict_alt[i+1].append(EUv3[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(3 - par.c + noiseterm[0])
+                else:
+                    c = np.max([RVdict[i+1][n],(EUv1[i]-par.c), (EUv2[i]-par.c)])
+                    if c == RVdict[i+1][n]:
+                        careerdict_alt[i+1].append(3)
+                        EVdict_alt[i+1].append(RVdict[i+1][n])
+                        switchdict[i+1].append(0)
+                        RVdict_alt[i+1].append(RVdict[i+1][n])
+                    elif c == (EUv1[i]-par.c):
+                        careerdict_alt[i+1].append(1)
+                        EVdict_alt[i+1].append(EUv1[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(1 - par.c + noiseterm[0])
+                    else:
+                        careerdict_alt[i+1].append(2)
+                        EVdict_alt[i+1].append(EUv2[i]-par.c)
+                        switchdict[i+1].append(1)
+                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(2 - par.c + noiseterm[0])
+        
+        return switchdict, careerdict_alt, EVdict_alt, RVdict_alt
+            
+    def sort_career(self, switchdict, careerdict):
+        par = self.par
+
+        v1_original = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        v2_original = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        v3_original = {
+            1: [],
+            2: [],
+            3: [],
+            4: [],
+            5: [],
+            6: [],
+            7: [],
+            8: [],
+            9: [],
+            10: []
+        }
+
+        for i in range(0,par.N):
+            for n in range(0,par.K):
+                if careerdict[i+1][n] == 1:
+                    if switchdict[i+1][n] == 1:
+                        v1_original[i+1].append(1)
+                    else:
+                        v1_original[i+1].append(0)
+                elif careerdict[i+1][n] == 2:
+                    if switchdict[i+1][n] == 1:
+                        v2_original[i+1].append(1)
+                    else:
+                        v2_original[i+1].append(0)
+                else:
+                    if switchdict[i+1][n] == 1:
+                        v3_original[i+1].append(1)
+                    else:
+                        v3_original[i+1].append(0)
+
+        return v1_original, v2_original, v3_original
+
 def count(list):
     count1 = 0
     count2 = 0
@@ -502,84 +691,128 @@ def count(list):
     v3 = count3/len(list)
     
     h = [v1, v2, v3]
-
     return h
 
+
 def plot_career(C1,C2,C3,C4,C5,C6,C7,C8,C9,C10):
-        '''This function plots the shares of the different career choices for i = 1,2,...,10'''
+    '''This function plots the shares of the different career choices for i = 1,2,...,10'''
 
-        # plotting the 10 graphs for the shares of the different career choices
-        fig, axs = plt.subplots(nrows=5, ncols=2, figsize=(12, 20), dpi=100, constrained_layout=True)
-        fig.suptitle('Figure 2.1: Distribution of career choices for i = 1,...,10', fontsize=16)
-        labels = ['v1', 'v2' , 'v3']
+    # plotting the 10 graphs for the shares of the different career choices
+    fig, axs = plt.subplots(nrows=5, ncols=2, figsize=(12, 20), dpi=100, constrained_layout=True)
+    fig.suptitle('Figure 2.1: Distribution of career choices for i = 1,...,10', fontsize=16)
+    labels = ['v1', 'v2' , 'v3']
 
-        # then, creating the individual plots for each i
-        # for i = 1:
-        axs[0][0].set_ylabel('percentage')
-        axs[0][0].bar(labels, C1, color='mediumpurple')
-        axs[0][0].set_title('i = 1')
-        axs[0][0].set_ylim(0,1)
+    # then, creating the individual plots for each i
+    # for i = 1:
+    axs[0][0].set_ylabel('percentage')
+    axs[0][0].bar(labels, C1, color='mediumpurple')
+    axs[0][0].set_title('i = 1')
+    axs[0][0].set_ylim(0,1)
 
-        # for i = 2:
-        axs[0][1].set_ylabel('percentage')
-        axs[0][1].bar(labels,C2, color='mediumpurple')
-        axs[0][1].set_title('i = 2')
-        axs[0][1].set_ylim(0,1)
+    # for i = 2:
+    axs[0][1].set_ylabel('percentage')
+    axs[0][1].bar(labels,C2, color='mediumpurple')
+    axs[0][1].set_title('i = 2')
+    axs[0][1].set_ylim(0,1)
 
-        # for i = 3:
-        axs[1][0].set_ylabel('percentage')
-        axs[1][0].bar(labels,C3, color='mediumpurple')
-        axs[1][0].set_title('i = 3')
-        axs[1][0].set_ylim(0,1)
+    # for i = 3:
+    axs[1][0].set_ylabel('percentage')
+    axs[1][0].bar(labels,C3, color='mediumpurple')
+    axs[1][0].set_title('i = 3')
+    axs[1][0].set_ylim(0,1)
 
-        # for i = 4:
-        axs[1][1].set_ylabel('percentage')
-        axs[1][1].bar(labels,C4, color='mediumpurple')
-        axs[1][1].set_title('i = 4')
-        axs[1][1].set_ylim(0,1)
+    # for i = 4:
+    axs[1][1].set_ylabel('percentage')
+    axs[1][1].bar(labels,C4, color='mediumpurple')
+    axs[1][1].set_title('i = 4')
+    axs[1][1].set_ylim(0,1)
 
-        # for i = 5:
-        axs[2][0].set_ylabel('percentage')
-        axs[2][0].bar(labels,C5, color='mediumpurple')
-        axs[2][0].set_title('i = 5')
-        axs[2][0].set_ylim(0,1)
-        
-        # for i = 6:
-        axs[2][1].set_ylabel('percentage')
-        axs[2][1].bar(labels,C6, color='mediumpurple')
-        axs[2][1].set_title('i = 6')
-        axs[2][1].set_ylim(0,1)
+    # for i = 5:
+    axs[2][0].set_ylabel('percentage')
+    axs[2][0].bar(labels,C5, color='mediumpurple')
+    axs[2][0].set_title('i = 5')
+    axs[2][0].set_ylim(0,1)
+    
+    # for i = 6:
+    axs[2][1].set_ylabel('percentage')
+    axs[2][1].bar(labels,C6, color='mediumpurple')
+    axs[2][1].set_title('i = 6')
+    axs[2][1].set_ylim(0,1)
 
-        # for i = 7:
-        axs[3][0].set_ylabel('percentage')
-        axs[3][0].bar(labels,C7, color='mediumpurple')
-        axs[3][0].set_title('i = 7')
-        axs[3][0].set_ylim(0,1)
-        
-        # for i = 8:
-        axs[3][1].set_ylabel('percentage')
-        axs[3][1].bar(labels,C8, color='mediumpurple')
-        axs[3][1].set_title('i = 8')
-        axs[3][1].set_ylim(0,1)
+    # for i = 7:
+    axs[3][0].set_ylabel('percentage')
+    axs[3][0].bar(labels,C7, color='mediumpurple')
+    axs[3][0].set_title('i = 7')
+    axs[3][0].set_ylim(0,1)
+    
+    # for i = 8:
+    axs[3][1].set_ylabel('percentage')
+    axs[3][1].bar(labels,C8, color='mediumpurple')
+    axs[3][1].set_title('i = 8')
+    axs[3][1].set_ylim(0,1)
 
-        # for i = 9:
-        axs[4][0].set_ylabel('percentage')
-        axs[4][0].bar(labels,C9, color='mediumpurple')
-        axs[4][0].set_title('i = 9')
-        axs[4][0].set_ylim(0,1)
+    # for i = 9:
+    axs[4][0].set_ylabel('percentage')
+    axs[4][0].bar(labels,C9, color='mediumpurple')
+    axs[4][0].set_title('i = 9')
+    axs[4][0].set_ylim(0,1)
 
-        # for i = 10:
-        axs[4][1].set_ylabel('percentage')
-        axs[4][1].bar(labels,C10, color='mediumpurple')
-        axs[4][1].set_title('i = 10')
-        axs[4][1].set_ylim(0,1)
+    # for i = 10:
+    axs[4][1].set_ylabel('percentage')
+    axs[4][1].bar(labels,C10, color='mediumpurple')
+    axs[4][1].set_title('i = 10')
+    axs[4][1].set_ylim(0,1)
 
-        plt.show()
+    plt.show()
 
-def plot_exp_utility(list):
+
+def count2(list):
+    count0 = 0
+    count1 = 0
+
+    for element in list:
+        if element == 0:
+            count0 += 1
+        else:
+            count1 += 1
+    
+    switch = count1/len(list)
+    return switch
+
+
+def plot_switch(s_v1_original, s_v2_original, s_v3_original):
+    fig, axs = plt.subplots(nrows=3, figsize=(8,12), dpi=100, constrained_layout=True)
+    fig.suptitle('Figure 2.4: Share of graduates switching career', fontsize=16)
+    labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
+
+    # for v1 as the original choise:
+    axs[0].set_title('Original career choice: v1')
+    axs[0].set_ylabel('Share of graduates switching career')
+    axs[0].set_xlabel('Type of graduate')
+    axs[0].bar(labels, s_v1_original, color='mediumpurple')
+    axs[0].set_ylim(0,1)
+
+    # for v2 as the original choise:    
+    axs[1].set_title('Original career choice: v2')
+    axs[1].set_ylabel('Share of graduates switching career')
+    axs[1].set_xlabel('Type of graduate')
+    axs[1].bar(labels, s_v2_original, color='mediumpurple')
+    axs[1].set_ylim(0,1)
+
+    # for v3 as the original choise:
+    axs[2].set_title('Original career choice: v3')
+    axs[2].set_ylabel('Share of graduates switching career')
+    axs[2].set_xlabel('Type of graduate')
+    axs[2].bar(labels, s_v3_original, color='mediumpurple')
+    axs[2].set_ylim(0,1)
+
+    plt.show()
+
+
+def plot_exp_utility(list,title):
     plt.figure(figsize=(8, 6), dpi=100)
     ax = plt.subplot(1,1,1)
-    ax.set_title('Figure 2.2: Expected utility of career choices')
+    ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
     ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
     ax.set_ylim(2.5,4.0)
@@ -587,13 +820,14 @@ def plot_exp_utility(list):
     ax.set_ylabel('Expected utility')
     plt.show()
 
-def plot_realized_utility(list):
+
+def plot_realized_utility(list, title):
     plt.figure(figsize=(8, 6), dpi=100)
     ax = plt.subplot(1,1,1)
-    ax.set_title('Figure 2.3: Realized utility of career choices')
+    ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
     ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
-    ax.set_ylim(2.0,3.0)
+    ax.set_ylim(2.0,3.4)
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Realized utility')
-    plt.show()
+    plt.show()    
