@@ -140,6 +140,24 @@ class ProductionEconomy:
             print(f"Failed to find equilibrium prices {e}.")
         
         return result.x
+
+    def SWF(self,p1,p2,w,tau):
+        par = self.par
+        l_star, c1_star, c2_star = self.consumer_behavior(p1, p2, w)
+        y2_star = self.firm2(p2,w)[1]
+        pi1_star = self.imp_profit1(p1,w)
+        pi2_star = self.imp_profit2(p2,w)
+        T = tau*c2_star
+
+        utility = np.log(c1_star**par.alpha * c2_star**(1-par.alpha)) - par.nu * l_star**(1+par.epsilon) / (1+par.epsilon)
+        constraint = {'type' : 'eq', 'fun' : lambda tau: p1*c1_star + (p2+tau)*c2_star - w*l_star - T - pi1_star - pi2_star}
+        
+        obj_soc = -(utility - par.kappa * y2_star)
+
+        social_sol = optimize.minimize(obj_soc, x0=0, constraints=constraint, method='SLSQP')
+
+        return social_sol.x
+
     
 
 class CareerChoice:
