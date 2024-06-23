@@ -159,7 +159,6 @@ class ProductionEconomy:
         return social_sol.x
 
     
-
 class CareerChoice:
     def __init__(self, seed=None):
         '''Initializes the parameters of the model'''
@@ -167,10 +166,7 @@ class CareerChoice:
         par.J = 3
         par.N = 10
         par.K = 10000
-
-        par.F = np.arange(1,par.N+1)
         par.sigma = 2
-
         par.v = np.array([1,2,3])
         par.c = 1
 
@@ -178,46 +174,34 @@ class CareerChoice:
             np.random.seed(seed)
         self.seed = seed        
 
-
-    def epsdraw(self, size):
-        '''Draws epsilon from a normal distribution with mean 0 and standard deviation sigma.
-        Changes seed based on input.'''
-        par = self.par
-        eps= np.random.normal(loc=0, scale=par.sigma, size=size)
-        return eps
-
-
-    def utility(self):
-        '''Calculates the expected utility of each career choice given the seed for the normal
-        distribution for each career, v_j.'''
-        par = self.par
-        utility = []
-        for v in par.v:
-            utility.append(v + np.mean(self.epsdraw(par.K)))
-        return utility
-    
-
     def v1(self):
+        '''Calculates the expected utility of career choice v1 for each type of graduate'''
         par = self.par
+        # creating an empty list to store the expected utility for each type of graduate
         EU = []
+        # creating a for loop to loop over each type of graduate
         for i in range(1,par.N+1):
+            # drawing noise terms from the given normal distribution
+            # the size of the noise term is equal to numer of friends for each graduate
             eps = np.random.normal(loc=0, scale=par.sigma, size=i)
             eu = 1/i*(1*i + eps.sum())
             EU.append(eu)
         return EU
     
-
     def v2(self):
+        '''Calculates the expected utility of career choice v2 for each type of graduate'''
+        # same approach as for v1
         par = self.par
         EU = []
         for i in range(1,par.N+1):
             eps = np.random.normal(loc=0, scale=par.sigma, size=i)
             eu = 1/i*(2*i + eps.sum())
             EU.append(eu)
-        return EU
-    
+        return EU 
 
     def v3(self):
+        '''Calculates the expected utility of career choice v3 for each type of graduate'''
+        # same approach as for v1
         par = self.par
         EU = []
         for i in range(1,par.N+1):
@@ -226,23 +210,33 @@ class CareerChoice:
             EU.append(eu)
         return EU
     
-
     def career(self):
+        '''Looping over each type of graduate end sorting them into the career with the highest expected utility.'''
         par = self.par
+        # calling the expected utility functions for each career choice, getting 10 random instances for each
+        # type of graduate
         EUv1 = self.v1()
         EUv2 = self.v2()
         EUv3 = self.v3()
+
+        #creating empty lists to store the results in the correct order
         career = []
         EV = []
         noiseterm = []
         RV = []
+
+        # looping over each type of graduate
         for i in range(0,par.N):
+            # choosing the career with the highest expected utility for each type of graduate
             choice = np.max([EUv1[i], EUv2[i], EUv3[i]])
+            # if the choice is v1, add v1 = 1 to carrer list as well as the associated expected utility and a new noise term
+            # that needs to be used for the realized utility of choosing the given career
             if choice == EUv1[i]:
                 career.append(1)
                 EV.append(EUv1[i])
                 noise = np.random.normal(loc=0, scale=par.sigma, size=1)
                 noiseterm.append(noise[0])
+            # in the same manner, proceed if the choice is v2 or v3
             elif choice == EUv2[i]:
                 career.append(2)
                 EV.append(EUv2[i])
@@ -254,14 +248,17 @@ class CareerChoice:
                 noise = np.random.normal(loc=0, scale=par.sigma, size=1)
                 noiseterm.append(noise[0])
         
+        # looping over each type of graduate, we calculate the realized utility by adding the noise term
+        # to the base value, v_j, associated with the career they chose
         for i in range(0,par.N):
             RV.append(career[i] + noiseterm[i])
         return career, EV, RV
     
-
     def simulate(self):
+        '''Simulates the career choices for each type of graduate for K instances'''
         par = self.par
 
+        # creating empty dictionaries of career choice, expected utility and realized utility to store the results in correct order
         careerdict = {
             1: [],
             2: [],
@@ -299,6 +296,8 @@ class CareerChoice:
             10: []
         }
 
+        # looping over each type of graduate and simulating the career choice for K instances
+        # for each loop, adding the K results to the corresponding dictionaries
         for i in range(0,par.N):
             n = 0
             while n <= par.K:
@@ -308,12 +307,13 @@ class CareerChoice:
                 RVdict[i+1].append(RV[i])
                 n += 1
 
-        return careerdict, EVdict, RVdict
-    
+        return careerdict, EVdict, RVdict   
 
     def career_alt(self, careerdict, RVdict):
+        '''Simulates the career choices for each type of graduate for K instances, but with the possibility of switching career'''
         par = self.par
-
+        
+        # creating empty lists to sort and store correctly
         switchdict = {
             1: [],
             2: [],
@@ -366,72 +366,81 @@ class CareerChoice:
             10: []
         }
 
-        for i in range(0,par.N):  
+        # looping over the 10,000 instances previously simulated for each of the 10 types of graduates 
+        for i in range(0,par.N):    
             for n in range(0,par.K):
+                # after the graduates have been in their career for a year and the realized utility is known, they get the option
+                # to switch to a different career. If they do this, they draw three new noisy signals for the two careers they did not pick
                 EUv1 = self.v1()
                 EUv2 = self.v2()
                 EUv3 = self.v3()
+
+                # if the graduate chose career v1 originally, they must decide between sticking to their career or paying c = 1 to switch to one of the
+                # other careers based on their new drae of noisy signls. The same goes for the agents that picked the other two careers originally.
+                # for each choice, the corresponding values are appended into their respective dictionaries
+                # if the graduate chooses to switch, the variable added to switch will be a 1. If not, it will be a 0.
                 if careerdict[i+1][n] == 1:
-                    c = np.max([RVdict[i+1][n],(EUv2[i]-par.c), (EUv3[i]-par.c)])
+                    c = np.max([RVdict[i+1][n],(EUv2[i]-1), (EUv3[i]-1)])
                     if c == RVdict[i+1][n]:
                         careerdict_alt[i+1].append(1)
                         EVdict_alt[i+1].append(RVdict[i+1][n])
                         switchdict[i+1].append(0)
                         RVdict_alt[i+1].append(RVdict[i+1][n])
-                    elif c == (EUv2[i]-par.c):
+                    elif c == (EUv2[i]-1):
                         careerdict_alt[i+1].append(2)
-                        EVdict_alt[i+1].append(EUv2[i]-par.c)
+                        EVdict_alt[i+1].append(EUv2[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(2 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(2 - 1 + noise)
                     else: 
                         careerdict_alt[i+1].append(3)
-                        EVdict_alt[i+1].append(EUv3[i]-par.c)
+                        EVdict_alt[i+1].append(EUv3[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(3 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(3 - 1 + noise)
                 elif careerdict[i+1][n] == 2:
-                    c = np.max([RVdict[i+1][n],(EUv1[i]-par.c), (EUv3[i]-par.c)])
+                    c = np.max([RVdict[i+1][n],(EUv1[i]-1), (EUv3[i]-1)])
                     if c == RVdict[i+1][n]:
                         careerdict_alt[i+1].append(2)
                         EVdict_alt[i+1].append(RVdict[i+1][n])
                         switchdict[i+1].append(0)
                         RVdict_alt[i+1].append(RVdict[i+1][n])  
-                    elif c == (EUv1[i]-par.c):
+                    elif c == (EUv1[i]-1):
                         careerdict_alt[i+1].append(1)
-                        EVdict_alt[i+1].append(EUv1[i]-par.c)
+                        EVdict_alt[i+1].append(EUv1[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(1 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(1 - 1 + noise)
                     else:
                         careerdict_alt[i+1].append(3)
-                        EVdict_alt[i+1].append(EUv3[i]-par.c)
+                        EVdict_alt[i+1].append(EUv3[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(3 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(3 - 1 + noise)
                 else:
-                    c = np.max([RVdict[i+1][n],(EUv1[i]-par.c), (EUv2[i]-par.c)])
+                    c = np.max([RVdict[i+1][n],(EUv1[i]-1), (EUv2[i]-1)])
                     if c == RVdict[i+1][n]:
                         careerdict_alt[i+1].append(3)
                         EVdict_alt[i+1].append(RVdict[i+1][n])
                         switchdict[i+1].append(0)
                         RVdict_alt[i+1].append(RVdict[i+1][n])
-                    elif c == (EUv1[i]-par.c):
+                    elif c == (EUv1[i]-1):
                         careerdict_alt[i+1].append(1)
-                        EVdict_alt[i+1].append(EUv1[i]-par.c)
+                        EVdict_alt[i+1].append(EUv1[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(1 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(1 - 1 + noise)
                     else:
                         careerdict_alt[i+1].append(2)
-                        EVdict_alt[i+1].append(EUv2[i]-par.c)
+                        EVdict_alt[i+1].append(EUv2[i]-1)
                         switchdict[i+1].append(1)
-                        noiseterm = np.random.normal(loc=0, scale=par.sigma, size=1)
-                        RVdict_alt[i+1].append(2 - par.c + noiseterm[0])
+                        noise = np.random.normal(loc=0, scale=par.sigma, size=1)
+                        RVdict_alt[i+1].append(2 - 1 + noise)
         
         return switchdict, careerdict_alt, EVdict_alt, RVdict_alt
             
     def sort_career(self, switchdict, careerdict):
+        '''Sorting the binary switch-variable based on which original career was chosen'''
         par = self.par
 
         v1_original = {
@@ -472,7 +481,7 @@ class CareerChoice:
             9: [],
             10: []
         }
-
+        # looping over each graduate's 10,000 instances and sorting the square matrix of career choices based on the original career choice
         for i in range(0,par.N):
             for n in range(0,par.K):
                 if careerdict[i+1][n] == 1:
@@ -494,6 +503,7 @@ class CareerChoice:
         return v1_original, v2_original, v3_original
 
 def count(list):
+    '''This function counts the share of times the number 1, 2 or 3 appears in a list'''
     count1 = 0
     count2 = 0
     count3 = 0
@@ -511,7 +521,6 @@ def count(list):
     
     h = [v1, v2, v3]
     return h
-
 
 def plot_career(C1,C2,C3,C4,C5,C6,C7,C8,C9,C10):
     '''This function plots the shares of the different career choices for i = 1,2,...,10'''
@@ -584,8 +593,8 @@ def plot_career(C1,C2,C3,C4,C5,C6,C7,C8,C9,C10):
 
     plt.show()
 
-
 def count2(list):
+    '''This function counts the share of times the number 1 appears in a list'''
     count0 = 0
     count1 = 0
 
@@ -598,8 +607,9 @@ def count2(list):
     switch = count1/len(list)
     return switch
 
-
 def plot_switch(s_v1_original, s_v2_original, s_v3_original):
+    '''This function plots the share of graduates switching career for each type of graduate for the three different career choices'''
+    # creating a figure that will have 3 rows of subplots
     fig, axs = plt.subplots(nrows=3, figsize=(8,12), dpi=100, constrained_layout=True)
     fig.suptitle('Figure 2.4: Share of graduates switching career', fontsize=16)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
@@ -627,8 +637,10 @@ def plot_switch(s_v1_original, s_v2_original, s_v3_original):
 
     plt.show()
 
-
 def plot_exp_utility(list,title):
+    '''This function plots the average expected utility for each type of graduate for the three different career choices'''
+    # the function takes in the list of average expected utilities for each i, as well as a title so the plot can be used for 
+    # both the expected utility before and after the potential career switch
     plt.figure(figsize=(8, 6), dpi=100)
     ax = plt.subplot(1,1,1)
     ax.set_title(title)
@@ -639,22 +651,68 @@ def plot_exp_utility(list,title):
     ax.set_ylabel('Expected utility')
     plt.show()
 
-
 def plot_realized_utility(list, title):
+    '''This function plots the average realized utility for each type of graduate for the three different career choices'''
+    # like the plot_exp_utility function, this funtion has a variable title so it can be used before and after the potential caareer switch
     plt.figure(figsize=(8, 6), dpi=100)
     ax = plt.subplot(1,1,1)
     ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
     ax.bar(labels, list, color='mediumpurple', alpha=0.7, label='v1')
-    ax.set_ylim(2.0,3.4)
+    ax.set_ylim(2.0,3.0)
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Realized utility')
     plt.show()    
 
+def findABCD(rng,X,y):
+    A = min((d for d in X if d[0] > y[0] and d[1] > y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
+    B = min((d for d in X if d[0] > y[0] and d[1] < y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
+    C = min((d for d in X if d[0] < y[0] and d[1] < y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
+    D = min((d for d in X if d[0] < y[0] and d[1] > y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
+    return A, B, C, D
 
-class Barycentric:
+class Barycentric():
     #Defining a function for the barycentric coordinates:
-    def barycentric_c(A, B, C, y):
+    def __init__(self,rng,X,y,A,B,C,D):
+        self.rng = rng
+        self.X = X
+        self.y = y
+        self.A = A
+        self.B = B
+        self.C = C
+        self.D = D
+
+    def plotABCD(self):
+        #Plotting our dots and triangles
+        plt.figure(figsize=(6, 6))
+        #plotting points for X
+        plt.scatter(self.X[:, 0], self.X[:, 1], c='grey', label='Datapoints for X, random')
+        #Plotting y point
+        plt.scatter(self.y[0], self.y[1], c='magenta', label='y', marker='o')
+
+        #Plotting points for A, B, C and D
+        points = [self.A, self.B, self.C, self.D]
+        labels = ['A', 'B', 'C', 'D']
+        colors = ['tab:blue', 'mediumpurple', 'blueviolet', 'violet']
+        # Separating the x and y values
+        x_values = [point[0] for point in points]
+        y_values = [point[1] for point in points]
+
+        for i in range(len(points)):
+            plt.scatter(x_values[i], y_values[i], color=colors[i], label=labels[i])
+
+        #Making the triangles
+        plt.plot([self.A[0], self.B[0], self.C[0], self.A[0]], [self.A[1], self.B[1], self.C[1], self.A[1]], c='mediumblue', ls='-.', label='ABC')
+        plt.plot([self.C[0], self.D[0], self.A[0], self.C[0]], [self.C[1], self.D[1], self.A[1], self.C[1]], c='mediumpurple', ls='-.', label='CDA')
+
+        plt.xlabel('$x_1$')
+        plt.ylabel('$x_2$')
+        plt.title('Figure 3.1: Barycentric Interpolation')
+        plt.legend(frameon=True,loc='upper right',bbox_to_anchor=(1.55,1.0))
+        plt.grid(linestyle='--', linewidth=0.5, color='lightgrey')
+        plt.show()  
+
+    def barycentric_c(A,B,C,y):
         #First, we define the denominator to make the calculations more simple for r_1 and r_2
         denominator = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1])
         r_1 = ((B[1] - C[1]) * (y[0] - C[0]) + (C[0] - B[0]) * (y[1] - C[1])) / denominator
@@ -669,17 +727,20 @@ class Barycentric:
     def f(x1, x2):
         return x1 + x2
 
-    def check_coor_tri(A, B, C, D, y):
+    def check_coor_tri(self):
         #Including the two triangles in the coordinates
-        r_1_ABC, r_2_ABC, r_3_ABC = barycentric_c(A, B, C, y)
-        r_1_CDA, r_2_CDA, r_3_CDA = barycentric_c(C, D, A, y)
+        r_1_ABC, r_2_ABC, r_3_ABC = self.barycentric_c(self.A, self.B, self.C, self.y)
+        r_1_CDA, r_2_CDA, r_3_CDA = self.barycentric_c(self.C, self.D, self.A, self.y)
 
         #Finally confirming if y is in the triangles
-        if bary_in_tri(r_1_CDA, r_2_CDA, r_3_CDA):
-            f_y = r_1_CDA * f(C[0], C[1]) + r_2_CDA * f(D[0], D[1]) + r_3_CDA * f(A[0], A[1])
-            return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, f"Y is inside CDA. f(y) = {f_y}"
-        elif bary_in_tri(r_1_ABC, r_2_ABC, r_3_ABC):
-            f_y = r_1_ABC * f(A[0], A[1]) + r_2_ABC * f(B[0], B[1]) + r_3_ABC * f(C[0], C[1])
-            return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, f"y is inside ABC. f(y) = {f_y}"
+        cond1 = self.bary_in_tri(r_1_CDA, r_2_CDA, r_3_CDA)
+        cond2 = self.bary_in_tri(r_1_ABC, r_2_ABC, r_3_ABC)
+
+        if cond1:
+            f_y = r_1_CDA * self.f(self.C[0], self.C[1]) + r_2_CDA * self.f(self.D[0], self.D[1]) + r_3_CDA * self.f(self.A[0], self.A[1])
+            print(f"Y is inside CDA. f(y) = {f_y}")
+        elif cond2:
+            f_y = r_1_ABC * self.f(self.A[0], self.A[1]) + r_2_ABC * self.f(self.B[0], self.B[1]) + r_3_ABC * self.f(self.C[0], self.C[1])
+            print(f"y is inside ABC. f(y) = {f_y}")
         else:
-            return r_1_CDA, r_2_CDA, r_3_CDA, r_1_ABC, r_2_ABC, r_3_ABC, "y isn't in the triangles. Undefined f(y)"
+            print("y isn't in the triangles. Undefined f(y)")
