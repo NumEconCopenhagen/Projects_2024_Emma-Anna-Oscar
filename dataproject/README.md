@@ -19,3 +19,4 @@ International Labor.json (*source: jobindsats.dk*)
 ``pip install git+https://github.com/alemartinello/dstapi``
 ``pip install pandas-datareader``
 
+In this exam, we have used AI as an additional tool, co-pilot and ChatGPT. We have mainly used it as inspiration when we have been a little uncertain about our own approach.
