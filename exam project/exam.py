@@ -676,7 +676,7 @@ def plot_realized_utility(list, title):
     ax.set_title(title)
     labels = ['i = 1', 'i = 2', 'i = 3', 'i = 4', 'i = 5', 'i = 6', 'i = 7', 'i = 8', 'i = 9', 'i = 10']
     ax.bar(labels, list, color='mediumpurple')
-    ax.set_ylim(2.0,3.0)
+    ax.set_ylim(2.0,3.4)
     ax.set_xlabel('Type of graduate')
     ax.set_ylabel('Realized utility')
     plt.show()
