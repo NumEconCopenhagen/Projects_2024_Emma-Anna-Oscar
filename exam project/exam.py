@@ -89,7 +89,6 @@ class ProductionEconomy:
         return exc_labor, exc_good1, exc_good2
     
     def check_market_clearing(self, p1_values, p2_values, w):
-        results = []
 
         for p1 in p1_values:
             for p2 in p2_values:
@@ -102,13 +101,6 @@ class ProductionEconomy:
                     good1_market_clearing = np.isclose(c1_star, y1_star)
                     good2_market_clearing = np.isclose(c2_star, y2_star)
                     
-                    results.append({
-                        'p1': p1,
-                        'p2': p2,
-                        'labor_market_clearing': labor_market_clearing,
-                        'good1_market_clearing': good1_market_clearing,
-                        'good2_market_clearing': good2_market_clearing
-                    })
                 except Exception as e:
                     print(f"Error for p1={p1}, p2={p2}: {e}")
                     continue
@@ -116,17 +108,38 @@ class ProductionEconomy:
         if labor_market_clearing and good1_market_clearing and good2_market_clearing:
             print(f'For p1={p1:2f} and p2={p2:.2f}, does the markets clear?\n labor: {labor_market_clearing}, good1: {good1_market_clearing}, good2: {good2_market_clearing}\n')
         else:
-            print(f'Found no combination of p1 and p2, which clears all three markets')
+            print(f'Found no combination of p1 and p2, which clears all three markets.')
 
-        return results
+        return
     
     def find_equilibrium_prices(self, w):
-        initial_guess = [0, 0]
-        obj_p = lambda p1, p2: self.market_error(p1,p2, w)
+        par = self.par
+        initial_guess = [0.1, 0.1]
 
-        result = optimize.root(obj_p, initial_guess, method='hybr')
+        def obj_p(prices):
+            p1, p2 = prices
+            # We use Walras' Law, meaning we only neew to clear two of the markets, to find the equilibrium prices
+            exc_labor, exc_good1 = self.market_error(p1, p2, w)[0], self.market_error(p1, p2, w)[1]
+            total_excess = exc_labor, exc_good1
+            return total_excess
         
-        return result
+        print(f'Using Walras Law, clearing the markets for labor and good 1, to find equilibrium prices for a given wage w={w}')
+        print(f'Initial guess of (p1, p2): {initial_guess}.\n Initial excess demand for labor: {obj_p(initial_guess)[0]:.3f}, good 1: {obj_p(initial_guess)[1]:.3f}\n')
+        print(f'Finding equilibrium prices...\n ...\n')
+        
+        try:
+            result = optimize.root(obj_p, initial_guess, method='hybr')
+            if result.success:
+                np.set_printoptions(precision=5)
+                print(f'Convergence succesful, found equilibrium prices: p1 = {result.x[0]:.3f}, p2 = {result.x[1]:.3f}')
+                print(f'Excess demand for: labor = {obj_p(result.x)[0]:.5f}, good 1 = {obj_p(result.x)[1]:.5f}')
+                return result.x
+            elif not result.success:
+                print(f'Did not converge: {result.message}')
+        except Exception as e:
+            print(f"Failed to find equilibrium prices {e}.")
+        
+        return result.x
     
 
 class CareerChoice:
