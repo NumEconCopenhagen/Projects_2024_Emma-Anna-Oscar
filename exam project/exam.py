@@ -37,12 +37,11 @@ class ProductionEconomy1:
         y1 = lambda l1: par.A * (l1 ** par.gamma)
 
         obj_f1 = lambda l1: p1*y1 - w*l1
-        constraint = lambda l1: y1 - par.A*(l1**par.gamma)
 
-        sol_f1 = optimize.minimize(obj_f1, x0=0, constraints=constraint, method='SLSQP')
+        sol_f1 = optimize.minimize(obj_f1, x0=0, method='L-BFGS-B')
 
         l1_star = sol_f1.x
-        y1_star = y1(l1_star)
+        y1_star = obj_f1(l1_star)
 
         return l1_star, y1_star
     
@@ -60,7 +59,7 @@ class ProductionEconomy1:
         obj_f2 = lambda l2: p2*y2 - w*l2
         constraint = lambda l2: y2 - par.A*(l2**par.gamma)
 
-        pi2_star = optimize.minimize(obj_f2, x0=0, constraints=constraint, method='SLSQP')
+        pi2_star = optimize.minimize(obj_f2, x0=0, constraints=constraint, method='L-BFGS-B')
 
         l2_star = pi2_star.x
         y2_star = y2(l2_star)
