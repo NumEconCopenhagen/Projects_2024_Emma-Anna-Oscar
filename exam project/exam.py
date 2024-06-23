@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from types import SimpleNamespace
 from scipy import optimize
 
-class ProductionEconomy1:
+class ProductionEconomy:
 
     def __init__(self):
         par = self.par = SimpleNamespace()
@@ -33,12 +33,13 @@ class ProductionEconomy1:
     def firm1(self, p1, w):
         par = self.par
 
-        l1 = (p1*par.A * par.gamma/w) ** (1/ (1-par.gamma))
-        y1 = lambda l1: par.A * (l1 ** par.gamma)
+        l1 = (p1*par.A * par.gamma/w) ** (1/(1-par.gamma))
+        y1 = par.A * (l1 ** par.gamma)
 
         obj_f1 = lambda l1: p1*y1 - w*l1
+        constraint = y1 - par.A*(l1**par.gamma)
 
-        sol_f1 = optimize.minimize(obj_f1, x0=0, method='L-BFGS-B')
+        sol_f1 = optimize.minimize(obj_f1, x0=0, constraints=constraint, method='L-BFGS-B')
 
         l1_star = sol_f1.x
         y1_star = obj_f1(l1_star)
@@ -59,7 +60,7 @@ class ProductionEconomy1:
         obj_f2 = lambda l2: p2*y2 - w*l2
         constraint = lambda l2: y2 - par.A*(l2**par.gamma)
 
-        pi2_star = optimize.minimize(obj_f2, x0=0, constraints=constraint, method='L-BFGS-B')
+        pi2_star = optimize.minimize(obj_f2, x0=0, constraints=constraint, method='L-BFGS-B', bounds=[(0,None)])
 
         l2_star = pi2_star.x
         y2_star = y2(l2_star)
@@ -69,8 +70,8 @@ class ProductionEconomy1:
     def consumer_behavior(self,p1,p2,w):
         par = self.par
 
-        l1 = self.firm1(p1,w)
-        l2 = self.firm2(p2,w)
+        l1 = self.firm1(p1,w)[0]
+        l2 = self.firm2(p2,w)[0]
         l = l1 + l2
 
         pi1_star = self.imp_profit1(p1,w)
@@ -78,69 +79,38 @@ class ProductionEconomy1:
 
         c1 = lambda l: par.alpha * (w*l + par.T + pi1_star + pi2_star) / p1
         c2 = lambda l: (1-par.alpha) * (w*l + par.T + pi1_star + pi2_star) / (p2 + par.tau)
+        utility = lambda c1,c2: np.log(c1(l)**par.alpha * c2(l)**(1-par.alpha)) - par.nu * l**(1+par.epsilon) / (1+par.epsilon)
 
-        obj = lambda l: -np.log(c1(l)**par.alpha * c2(l)**(1-par.alpha)) + par.nu * l**(1+par.epsilon) / (1+par.epsilon)
-
-        sol = optimize.minimize(obj, x0=0, method='SLSQP')
+        sol = optimize.minimize(utility, x0=0, method='L-BFGS-B', bounds=(0,None))
 
         l_star = sol.x
         c1_star = c1(l_star)
         c2_star = c2(l_star)
+        utility_star = utility(c1_star,c2_star)
 
-        return l_star, c1_star, c2_star
+        return l_star, c1_star, c2_star, utility_star
 
-
-    def utility(self, p1, p2, w):
-        par = self.par
-
-        l_star, c1_star, c2_star = self.consumer_behavior(p1,p2,w)
-        c1 = c1_star
-        c2 = c2_star
-        l = l_star
-
-        pi1_star = self.firm1(p1,w)
-        pi2_star = self.firm2(p2,w)
-
-        constraint = p1*c1 + (p2+par.tau)*c2 - w*(l) - par.T - pi1_star - pi2_star
-        obj_u = lambda l: np.log(c1**par.alpha * c2**(1-par.alpha)) - par.nu*(l)**(1+par.epsilon) / (1+par.epsilon)
-
-        sol_u = optimize.minimize(obj_u, x0=0, constraints=constraint, method='SLSQP')
-
-        return sol_u
-    
-    def optimal_behavior_labor(self,p1,p2,w):
-        par = self.par
-
-
-
-        c1 = self.optimal_behavior_c1(p1,p2,w)
-        l1 = self.opt_labor1(p1,w)
-        c2 = self.optimal_behavior_c2(p1,p2,w)
-        l2 = self.opt_labor2(p2,w)
-
-        l = l1 + l2
-
-        obj_l = np.log(c1**par.alpha * c2**(1-par.alpha)) - par.nu * (l**(1+par.epsilon))/(1+par.epsilon)
-        sol_l = optimize.minimize(obj_l, x0=0, method='SLSQP')
-        return sol_l
     
     def labor_market_clearing(self,p1,p2,w):
-        l = self.optimal_behavior_labor(p1,p2,w)
-        l1 = self.opt_labor1(p1,w)
-        l2 = self.opt_labor2(p2,w)
-        labor_market = l - (l1 + l2)
+        l_star = self.consumer_behavior(p1,p2,w)[0]
+        l1_star = self.firm1(p1,w)[0]
+        l2_star = self.firm2(p2,w)[0]
+
+        labor_market = l_star - l1_star - l2_star
         return labor_market
     
     def goods_market_clearing(self,p1,p2,w):
-        c1 = self.optimal_behavior_c1(p1,p2,w)
-        y1 = self.opt_output1(p1,w)
-        good_market1 = c1 - y1
+        c1_star = self.consumer_behavior(p1,p2,w)[1]
+        y1_star = self.firm1(p1,w)[1]
+
+        good_market1 = c1_star - y1_star
         return good_market1
     
     def goods_market_clearing2(self,p1,p2,w):
-        c2 = self.optimal_behavior_c2(p1,p2,w)
-        y2 = self.opt_output2(p2,w)
-        good_market2 = c2 - y2
+        c2_star = self.consumer_behavior(p1,p2,w)[2]
+        y2_star = self.firm2(p2,w)[1]
+
+        good_market2 = c2_star - y2_star
         return good_market2
     
 
