@@ -671,6 +671,21 @@ def findABCD(rng,X,y):
     D = min((d for d in X if d[0] < y[0] and d[1] > y[1]), key=lambda d: np.sqrt((d[0] - y[0])**2 + (d[1] - y[1])**2))
     return A, B, C, D
 
+def barycentric_c(A, B, C, y):
+    #First, we define the denominator to make the calculations more simple for r_1 and r_2
+    denominator = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1])
+    r_1 = ((B[1] - C[1]) * (y[0] - C[0]) + (C[0] - B[0]) * (y[1] - C[1])) / denominator
+    r_2 = ((C[1] - A[1]) * (y[0] - C[0]) + (A[0] - C[0]) * (y[1] - C[1])) / denominator
+    r_3 = 1 - r_1 - r_2
+    return r_1, r_2, r_3
+
+#Next step is to find out if the Bary coordinates are within the triangles
+def bary_in_tri(r_1, r_2, r_3):
+    return (0<= r_1 <= 1) and (0<= r_2 <= 1) and (0<= r_3 <= 1)
+
+def f(x1, x2):
+    return x1 + x2
+
 class Barycentric():
     #Defining a function for the barycentric coordinates:
     def __init__(self,rng,X,y,A,B,C,D):
@@ -689,7 +704,7 @@ class Barycentric():
         plt.scatter(self.X[:, 0], self.X[:, 1], c='grey', label='Datapoints for X, random')
         #Plotting y point
         plt.scatter(self.y[0], self.y[1], c='magenta', label='y', marker='o')
-
+        
         #Plotting points for A, B, C and D
         points = [self.A, self.B, self.C, self.D]
         labels = ['A', 'B', 'C', 'D']
@@ -712,35 +727,35 @@ class Barycentric():
         plt.grid(linestyle='--', linewidth=0.5, color='lightgrey')
         plt.show()  
 
-    def barycentric_c(A,B,C,y):
-        #First, we define the denominator to make the calculations more simple for r_1 and r_2
-        denominator = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1])
-        r_1 = ((B[1] - C[1]) * (y[0] - C[0]) + (C[0] - B[0]) * (y[1] - C[1])) / denominator
-        r_2 = ((C[1] - A[1]) * (y[0] - C[0]) + (A[0] - C[0]) * (y[1] - C[1])) / denominator
-        r_3 = 1 - r_1 - r_2
-        return r_1, r_2, r_3
+    def plotABCD_alt(self,Y):
+        #Plotting our dots and triangles
+        plt.figure(figsize=(6, 6))
+        #plotting points for X
+        plt.scatter(self.X[:, 0], self.X[:, 1], c='grey', label='Datapoints for X, random')
+        #Plotting y point
+        plt.scatter(self.y[0], self.y[1], c='magenta', label='y', marker='o')
 
-    #Next step is to find out if the Bary coordinates are within the triangles
-    def bary_in_tri(r_1, r_2, r_3):
-        return (0<= r_1 <= 1) and (0<= r_2 <= 1) and (0<= r_3 <= 1)
+        #Plotting points for A, B, C and D
+        points = [self.A, self.B, self.C, self.D]
+        labels = ['A', 'B', 'C', 'D']
+        colors = ['tab:blue', 'mediumpurple', 'blueviolet', 'violet']
+        # Separating the x and y values
+        x_values = [point[0] for point in points]
+        y_values = [point[1] for point in points]
 
-    def f(x1, x2):
-        return x1 + x2
+        for i in range(len(points)):
+            plt.scatter(x_values[i], y_values[i], color=colors[i], label=labels[i])
 
-    def check_coor_tri(self):
-        #Including the two triangles in the coordinates
-        r_1_ABC, r_2_ABC, r_3_ABC = self.barycentric_c(self.A, self.B, self.C, self.y)
-        r_1_CDA, r_2_CDA, r_3_CDA = self.barycentric_c(self.C, self.D, self.A, self.y)
+        plt.plot([self.A[0], self.B[0], self.C[0], self.A[0]], [self.A[1], self.B[1], self.C[1], self.A[1]], c='mediumblue', ls='-.', label='ABC')
+        plt.plot([self.C[0], self.D[0], self.A[0], self.C[0]], [self.C[1], self.D[1], self.A[1], self.C[1]], c='mediumpurple', ls='-.', label='CDA')
 
-        #Finally confirming if y is in the triangles
-        cond1 = self.bary_in_tri(r_1_CDA, r_2_CDA, r_3_CDA)
-        cond2 = self.bary_in_tri(r_1_ABC, r_2_ABC, r_3_ABC)
+        #Plotting all coordinates in Y
+        for coordinate in Y:
+            plt.scatter(coordinate[0], coordinate[1], c='magenta', marker='o', label='coordinate in Y')
 
-        if cond1:
-            f_y = r_1_CDA * self.f(self.C[0], self.C[1]) + r_2_CDA * self.f(self.D[0], self.D[1]) + r_3_CDA * self.f(self.A[0], self.A[1])
-            print(f"Y is inside CDA. f(y) = {f_y}")
-        elif cond2:
-            f_y = r_1_ABC * self.f(self.A[0], self.A[1]) + r_2_ABC * self.f(self.B[0], self.B[1]) + r_3_ABC * self.f(self.C[0], self.C[1])
-            print(f"y is inside ABC. f(y) = {f_y}")
-        else:
-            print("y isn't in the triangles. Undefined f(y)")
+        plt.xlabel('$x_1$')
+        plt.ylabel('$x_2$')
+        plt.title('Figure 3.2: Barycentric Interpolation expanded')
+        plt.legend(frameon=True,loc='upper right',bbox_to_anchor=(1.55,1.0))
+        plt.grid(linestyle='--', linewidth=0.5, color='lightgrey')
+        plt.show()
